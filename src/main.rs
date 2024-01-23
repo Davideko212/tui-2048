@@ -2,21 +2,24 @@ mod interface;
 mod colors;
 
 use std::{error::Error, io};
+use std::sync::atomic::{AtomicU64, Ordering};
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use crossterm::event::KeyCode::*;
 use itertools::Itertools;
 use ratatui::{prelude::*, widgets::*};
-use ratatui::style::Color::*;
 use crate::colors::{PALETTES, TableColors};
 use crate::interface::ui;
 
 const INFO_TEXT: &str =
-    "(Esc) quit | (↑) move up | (↓) move down | (→) next color | (←) previous color";
+    "(Esc) quit | (↑) move up | (↓) move Down | (→) move right | (←) move left";
 
 const ITEM_HEIGHT: usize = 4;
+static SCORE: AtomicU64 = AtomicU64::new(0);
+static HIGHSCORE: AtomicU64 = AtomicU64::new(0);
 
 fn main() -> Result<(), Box<dyn Error>> {
     // setup terminal
@@ -47,16 +50,20 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
+    let keymap = app.config.keymap.clone();
+
     loop {
         terminal.draw(|f| ui(f, &mut app))?;
 
         if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
-                use KeyCode::*;
                 match key.code {
-                    Char('q') | Esc => return Ok(()),
-                    Char('j') | Down => app.next(),
-                    Char('k') | Up => app.previous(),
+                    code if keymap.exit.contains(&code) => return Ok(()),
+                    code if keymap.reset.contains(&code) => todo!(),
+                    code if keymap.up.contains(&code) => app.up(),
+                    code if keymap.down.contains(&code) => app.down(),
+                    code if keymap.left.contains(&code) => app.left(),
+                    code if keymap.right.contains(&code) => app.right(),
                     _ => {}
                 }
             }
@@ -87,53 +94,90 @@ impl Data {
 struct App {
     pub state: TableState,
     pub items: Vec<Data>,
-    pub scroll_state: ScrollbarState,
-    pub colors: TableColors,
     pub color_index: usize,
+    pub config: Config,
 }
 
 impl App {
     fn new() -> App {
         let data_vec = generate_data();
         App {
-            state: TableState::default().with_selected(Option::from(0usize)),
-            scroll_state: ScrollbarState::new((data_vec.len() - 1) * ITEM_HEIGHT),
-            colors: TableColors::new(&PALETTES[0]),
+            state: TableState::default(),
             color_index: 0,
             items: data_vec,
+            config: Config {
+                colors: TableColors::new(&PALETTES[0]),
+                keymap: KeyMap::default(),
+                field_size: 4,
+                win_value: 2048,
+            }
         }
     }
-    pub fn next(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.items.len() - 1 {
-                    0
-                } else {
-                    i + 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
-        self.scroll_state = self.scroll_state.position(i * ITEM_HEIGHT);
+
+    pub fn up(&mut self) {
+
     }
 
-    pub fn previous(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    self.items.len() - 1
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
-        self.scroll_state = self.scroll_state.position(i * ITEM_HEIGHT);
+    pub fn down(&mut self) {
+
+        incr_score(2);
+    }
+
+    pub fn left(&mut self) {
+
+    }
+
+    pub fn right(&mut self) {
+        incr_score(4);
     }
 
     pub fn set_colors(&mut self) {
-        self.colors = TableColors::new(&PALETTES[self.color_index])
+        self.config.colors = TableColors::new(&PALETTES[self.color_index])
     }
+}
+
+struct Config {
+    keymap: KeyMap,
+    colors: TableColors,
+    field_size: u8,
+    win_value: u64,
+}
+
+#[derive(Clone)]
+pub struct KeyMap {
+    pub up: Vec<KeyCode>,
+    down: Vec<KeyCode>,
+    left: Vec<KeyCode>,
+    right: Vec<KeyCode>,
+    exit: Vec<KeyCode>,
+    reset: Vec<KeyCode>,
+}
+
+impl KeyMap {
+    fn default() -> KeyMap {
+        KeyMap {
+            up: vec![Char('w'), Up],
+            down: vec![Char('s'), Down],
+            left: vec![Char('a'), Left],
+            right: vec![Char('d'), Right],
+            exit: vec![Char('q'), Esc],
+            reset: vec![Char('r'), Backspace],
+        }
+    }
+}
+
+fn incr_score(num: u64) {
+    SCORE.fetch_add(num, Ordering::SeqCst);
+}
+
+fn get_score() -> u64 {
+    SCORE.load(Ordering::SeqCst)
+}
+
+fn set_highscore(num: u64) {
+    HIGHSCORE.store(num, Ordering::SeqCst);
+}
+
+fn get_highscore() -> u64 {
+    HIGHSCORE.load(Ordering::SeqCst)
 }
