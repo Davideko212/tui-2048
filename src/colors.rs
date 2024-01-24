@@ -15,7 +15,6 @@ pub struct TableColors {
     pub row_fg: Color,
     pub selected_style_fg: Color,
     pub normal_row_color: Color,
-    pub alt_row_color: Color,
     pub footer_border_color: Color,
 }
 
@@ -28,7 +27,6 @@ impl TableColors {
             row_fg: PALETTES[3],
             selected_style_fg: Gray,
             normal_row_color: Black,
-            alt_row_color: Black,
             footer_border_color: Green,
         }
     }

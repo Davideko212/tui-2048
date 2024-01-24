@@ -75,19 +75,19 @@ fn generate_data() -> Vec<Data> {
     (0..4)
         .map(|_| {
             Data {
-                number: 2u32,
+                numbers: vec![0, 0, 0, 0],
             }
         })
         .collect_vec()
 }
 
 struct Data {
-    number: u32,
+    numbers: Vec<u32>,
 }
 
 impl Data {
-    fn number(&self) -> &u32 {
-        &self.number
+    fn numbers(&self) -> &Vec<u32> {
+        &self.numbers
     }
 }
 
