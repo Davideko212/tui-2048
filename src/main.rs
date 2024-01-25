@@ -124,7 +124,7 @@ fn check_loss(field: &Vec<Data>) -> bool {
     true
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 struct Data {
     numbers: Vec<u32>,
 }
@@ -169,16 +169,17 @@ impl App {
 
     pub fn up(&mut self) {
         let mut new_items = Vec::<Data>::new();
-        movement::rotate(&mut self.items);
-        movement::rotate(&mut self.items);
-        movement::rotate(&mut self.items);
+        //movement::rotate(&mut self.items);
+        //movement::rotate(&mut self.items);
+        //movement::rotate(&mut self.items);
         for row in self.items.iter() {
             new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
         }
-        movement::rotate(&mut self.items);
+        //movement::rotate(&mut self.items);
         self.items = new_items;
 
-        spawn_field(&mut self.items)
+        spawn_field(&mut self.items);
+        if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn down(&mut self) {
@@ -195,7 +196,8 @@ impl App {
         }
         self.items = new_items;
 
-        spawn_field(&mut self.items)
+        spawn_field(&mut self.items);
+        if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn right(&mut self) {
@@ -205,7 +207,8 @@ impl App {
         }
         self.items = new_items;
 
-        spawn_field(&mut self.items)
+        spawn_field(&mut self.items);
+        if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn set_colors(&mut self) {
