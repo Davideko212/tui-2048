@@ -16,6 +16,7 @@ use ratatui::{prelude::*, widgets::*};
 use crate::colors::{PALETTES, TableColors};
 use crate::GameState::*;
 use crate::interface::ui;
+use crate::movement::rotate;
 
 const INFO_TEXT: &str =
     "(Esc) quit | (↑) move up | (↓) move Down | (→) move right | (←) move left";
@@ -107,7 +108,7 @@ fn check_loss(field: &Vec<Data>) -> bool {
     }
 
     // right
-    let mut new_items = Vec::<Data>::new();
+    new_items = Vec::<Data>::new();
     for row in field.iter() {
         new_items.push(Data { numbers: movement::slide_right(row.numbers().as_slice()) });
     }
@@ -115,11 +116,29 @@ fn check_loss(field: &Vec<Data>) -> bool {
         return false;
     }
 
-    // top
-    // todo!();
+    // up
+    new_items = Vec::<Data>::new();
+    let mut clone = field.clone();
+    rotate(&mut clone, true);
+    for row in clone.iter() {
+        new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+    }
+    rotate(&mut new_items, false);
+    if *field != new_items {
+        return false;
+    }
 
     // down
-    // todo!();
+    new_items = Vec::<Data>::new();
+    clone = field.clone();
+    rotate(&mut clone, false);
+    for row in clone.iter() {
+        new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+    }
+    rotate(&mut new_items, true);
+    if *field != new_items {
+        return false;
+    }
 
     true
 }
@@ -169,13 +188,14 @@ impl App {
 
     pub fn up(&mut self) {
         let mut new_items = Vec::<Data>::new();
-        //movement::rotate(&mut self.items);
-        //movement::rotate(&mut self.items);
-        //movement::rotate(&mut self.items);
-        for row in self.items.iter() {
+        let mut clone = self.items.clone();
+        rotate(&mut clone, true);
+
+        for row in clone.iter() {
             new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
         }
-        //movement::rotate(&mut self.items);
+
+        rotate(&mut new_items, false);
         self.items = new_items;
 
         spawn_field(&mut self.items);
@@ -183,7 +203,16 @@ impl App {
     }
 
     pub fn down(&mut self) {
-        incr_score(2);
+        let mut new_items = Vec::<Data>::new();
+        let mut clone = self.items.clone();
+        rotate(&mut clone, false);
+
+        for row in clone.iter() {
+            new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+        }
+
+        rotate(&mut new_items, true);
+        self.items = new_items;
 
         spawn_field(&mut self.items);
         if check_loss(&self.items) { self.gamestate = Loss }
