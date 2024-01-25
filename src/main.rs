@@ -13,7 +13,7 @@ use crossterm::event::KeyCode::*;
 use itertools::Itertools;
 use rand::{Rng, thread_rng};
 use ratatui::{prelude::*, widgets::*};
-use crate::colors::{PALETTES, TableColors};
+use crate::colors::TableColors;
 use crate::GameState::*;
 use crate::interface::ui;
 use crate::movement::rotate;
@@ -178,7 +178,7 @@ impl App {
             color_index: 0,
             items: data_vec,
             config: Config {
-                colors: TableColors::new(&PALETTES[0]),
+                colors: TableColors::default(),
                 keymap: KeyMap::default(),
                 field_size: 4,
                 win_value: 2048,
@@ -241,7 +241,7 @@ impl App {
     }
 
     pub fn set_colors(&mut self) {
-        self.config.colors = TableColors::new(&PALETTES[self.color_index])
+        self.config.colors = TableColors::default();
     }
 }
 
