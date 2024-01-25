@@ -14,6 +14,7 @@ use itertools::Itertools;
 use rand::{Rng, thread_rng};
 use ratatui::{prelude::*, widgets::*};
 use crate::colors::{PALETTES, TableColors};
+use crate::GameState::*;
 use crate::interface::ui;
 
 const INFO_TEXT: &str =
@@ -73,7 +74,6 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
 }
 
 fn generate_data() -> Vec<Data> {
-    let mut random = thread_rng();
     let mut ret = (0..4)
         .map(|_| {
             Data {
@@ -82,20 +82,49 @@ fn generate_data() -> Vec<Data> {
         })
         .collect_vec();
 
-    let num1 = random.gen_range(0..16);
-    let mut num2 =  random.gen_range(0..16);
-    while num1 == num2 {
-        num2 = random.gen_range(0..16);
-    }
-
-    // TODO: also spawn 4s on rare occasions
-    ret[num1 / 4].numbers[num1 % 4] = 2;
-    ret[num2 / 4].numbers[num2 % 4] = 2;
+    spawn_field(&mut ret);
+    spawn_field(&mut ret);
 
     ret
 }
 
-#[derive(Clone)]
+fn spawn_field(vec: &mut [Data]) {
+    let mut index = thread_rng().gen_range(0..16);
+    while vec[index / 4].numbers[index % 4] != 0 {
+        index = thread_rng().gen_range(0..16);
+    }
+    vec[index / 4].numbers[index % 4] = 2;
+}
+
+fn check_loss(field: &Vec<Data>) -> bool {
+    // left
+    let mut new_items = Vec::<Data>::new();
+    for row in field.iter() {
+        new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+    }
+    if *field != new_items {
+        return false;
+    }
+
+    // right
+    let mut new_items = Vec::<Data>::new();
+    for row in field.iter() {
+        new_items.push(Data { numbers: movement::slide_right(row.numbers().as_slice()) });
+    }
+    if *field != new_items {
+        return false;
+    }
+
+    // top
+    // todo!();
+
+    // down
+    // todo!();
+
+    true
+}
+
+#[derive(Clone, PartialEq)]
 struct Data {
     numbers: Vec<u32>,
 }
@@ -106,8 +135,16 @@ impl Data {
     }
 }
 
+enum GameState {
+    Active,
+    Loss,
+    Win,
+    Config,
+}
+
 struct App {
-    pub state: TableState,
+    pub tablestate: TableState,
+    pub gamestate: GameState,
     pub items: Vec<Data>,
     pub color_index: usize,
     pub config: Config,
@@ -117,7 +154,8 @@ impl App {
     fn new() -> App {
         let data_vec = generate_data();
         App {
-            state: TableState::default(),
+            tablestate: TableState::default(),
+            gamestate: Active,
             color_index: 0,
             items: data_vec,
             config: Config {
@@ -130,20 +168,44 @@ impl App {
     }
 
     pub fn up(&mut self) {
+        let mut new_items = Vec::<Data>::new();
+        movement::rotate(&mut self.items);
+        movement::rotate(&mut self.items);
+        movement::rotate(&mut self.items);
+        for row in self.items.iter() {
+            new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+        }
+        movement::rotate(&mut self.items);
+        self.items = new_items;
 
+        spawn_field(&mut self.items)
     }
 
     pub fn down(&mut self) {
-
         incr_score(2);
+
+        spawn_field(&mut self.items);
+        if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn left(&mut self) {
+        let mut new_items = Vec::<Data>::new();
+        for row in self.items.iter() {
+            new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+        }
+        self.items = new_items;
 
+        spawn_field(&mut self.items)
     }
 
     pub fn right(&mut self) {
-        incr_score(4);
+        let mut new_items = Vec::<Data>::new();
+        for row in self.items.iter() {
+            new_items.push(Data { numbers: movement::slide_right(row.numbers().as_slice()) });
+        }
+        self.items = new_items;
+
+        spawn_field(&mut self.items)
     }
 
     pub fn set_colors(&mut self) {

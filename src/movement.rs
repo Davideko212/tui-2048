@@ -1,13 +1,10 @@
 use itertools::Itertools;
 use crate::Data;
 
-fn merge_backward(slice: &mut [i32]) -> i32 {
+fn merge_backward(slice: &mut [u32]) {
     if slice[0] == slice[1] && slice[1] != 0 {
         slice[0] = 0;
-        slice[1] += 1;
-        2i32.pow(slice[1] as u32)
-    } else {
-        0
+        slice[1] += slice[1];
     }
 }
 
@@ -22,7 +19,7 @@ fn stable_partition<T, I, F>(slice: I, pred: F) -> Vec<T>
     left
 }
 
-pub fn slide_right(data: &[i32]) -> Vec<i32> {
+pub fn slide_right(data: &[u32]) -> Vec<u32> {
     let mut ret = stable_partition(data.iter().copied(), |x| *x == 0);
     let mut index = data.len();
     while index > 1 {
@@ -32,13 +29,13 @@ pub fn slide_right(data: &[i32]) -> Vec<i32> {
     stable_partition(ret.iter().copied(), |x| *x == 0)
 }
 
-pub fn slide_left(data: &[i32]) -> Vec<i32> {
+pub fn slide_left(data: &[u32]) -> Vec<u32> {
     let ret = data.iter().rev().copied().collect::<Vec<_>>();
     let data = slide_right(&ret);
     data.iter().rev().copied().collect::<Vec<_>>()
 }
 
-fn rotate(matrix: &mut Vec<Data>) {
+pub fn rotate(matrix: &mut Vec<Data>) {
     let rows = matrix.len();
     let cols = matrix[0].numbers.len();
 
@@ -57,6 +54,7 @@ fn rotate(matrix: &mut Vec<Data>) {
 mod slide_test {
     use super::slide_left;
     use super::slide_right;
+
     #[test]
     fn test_slide_right_with_one_element() {
         assert_eq!(vec![0, 0, 0, 1], slide_right(&[0, 1, 0, 0]));

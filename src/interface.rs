@@ -66,7 +66,7 @@ fn render_table(f: &mut Frame, app: &mut App, area: Rect) {
         .highlight_symbol(bar)
         .bg(app.config.colors.buffer_bg)
         .highlight_spacing(HighlightSpacing::Always);
-    f.render_stateful_widget(t, area, &mut app.state);
+    f.render_stateful_widget(t, area, &mut app.tablestate);
 }
 
 fn render_sidebar(f: &mut Frame, app: &mut App, area: Rect) {
