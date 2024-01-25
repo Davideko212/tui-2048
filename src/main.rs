@@ -1,5 +1,6 @@
 mod interface;
 mod colors;
+mod movement;
 
 use std::{error::Error, io};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -10,6 +11,7 @@ use crossterm::{
 };
 use crossterm::event::KeyCode::*;
 use itertools::Itertools;
+use rand::{Rng, thread_rng};
 use ratatui::{prelude::*, widgets::*};
 use crate::colors::{PALETTES, TableColors};
 use crate::interface::ui;
@@ -17,7 +19,6 @@ use crate::interface::ui;
 const INFO_TEXT: &str =
     "(Esc) quit | (↑) move up | (↓) move Down | (→) move right | (←) move left";
 
-const ITEM_HEIGHT: usize = 4;
 static SCORE: AtomicU64 = AtomicU64::new(0);
 static HIGHSCORE: AtomicU64 = AtomicU64::new(0);
 
@@ -72,15 +73,29 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
 }
 
 fn generate_data() -> Vec<Data> {
-    (0..4)
+    let mut random = thread_rng();
+    let mut ret = (0..4)
         .map(|_| {
             Data {
                 numbers: vec![0, 0, 0, 0],
             }
         })
-        .collect_vec()
+        .collect_vec();
+
+    let num1 = random.gen_range(0..16);
+    let mut num2 =  random.gen_range(0..16);
+    while num1 == num2 {
+        num2 = random.gen_range(0..16);
+    }
+
+    // TODO: also spawn 4s on rare occasions
+    ret[num1 / 4].numbers[num1 % 4] = 2;
+    ret[num2 / 4].numbers[num2 % 4] = 2;
+
+    ret
 }
 
+#[derive(Clone)]
 struct Data {
     numbers: Vec<u32>,
 }
