@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::prelude::{Line, Style, Text};
@@ -45,17 +46,14 @@ fn render_title(f: &mut Frame, area: Rect) {
 }
 
 fn render_table(f: &mut Frame, app: &mut App, area: Rect) {
-    let rows = app.items.iter().enumerate().map(|(i, data)| {
+    let rows = app.items.iter().map(|data| {
         let items = data.numbers();
         Row::new(
-            vec![
-                Cell::from(Text::from(format!("{}", items[0]))).bg(value_bg_color(items[0])),
-                Cell::from(Text::from(format!("{}", items[1]))).bg(value_bg_color(items[1])),
-                Cell::from(Text::from(format!("{}", items[2]))).bg(value_bg_color(items[2])),
-                Cell::from(Text::from(format!("{}", items[3]))).bg(value_bg_color(items[3])),
-            ]
+            items.iter().map(|i| Cell::from(Text::from(format!("{}", i))).bg(value_bg_color(*i))).collect_vec()
         )
-            .style(Style::new().fg(app.config.colors.row_fg).bg(app.config.colors.normal_row_color))
+            .style(Style::new()
+                .fg(app.config.colors.row_fg)
+                .bg(app.config.colors.normal_row_color))
             .height(4)
     });
 

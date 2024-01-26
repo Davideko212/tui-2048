@@ -165,7 +165,6 @@ struct App {
     pub tablestate: TableState,
     pub gamestate: GameState,
     pub items: Vec<Data>,
-    pub color_index: usize,
     pub config: Config,
 }
 
@@ -175,14 +174,13 @@ impl App {
         App {
             tablestate: TableState::default(),
             gamestate: Active,
-            color_index: 0,
             items: data_vec,
             config: Config {
                 colors: TableColors::default(),
                 keymap: KeyMap::default(),
                 field_size: 4,
                 win_value: 2048,
-            }
+            },
         }
     }
 

@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use crate::Data;
 
 fn merge_backward(slice: &mut [u32]) {
@@ -29,9 +30,9 @@ pub fn slide_right(data: &[u32]) -> Vec<u32> {
 }
 
 pub fn slide_left(data: &[u32]) -> Vec<u32> {
-    let ret = data.iter().rev().copied().collect::<Vec<_>>();
+    let ret = data.iter().rev().copied().collect_vec();
     let data = slide_right(&ret);
-    data.iter().rev().copied().collect::<Vec<_>>()
+    data.iter().rev().copied().collect_vec()
 }
 
 pub fn rotate(matrix: &mut Vec<Data>, counter_clockwise: bool) {
@@ -39,12 +40,12 @@ pub fn rotate(matrix: &mut Vec<Data>, counter_clockwise: bool) {
 
     let mut rotated = vec![Data { numbers: vec![0; size] }; size];
 
-    for i in 0..size {
+    for (i, data) in matrix.iter().enumerate() {
         for j in 0..size {
             if counter_clockwise {
-                rotated[size - 1 - j].numbers[i] = matrix[i].numbers[j];
+                rotated[size - 1 - j].numbers[i] = data.numbers[j];
             } else {
-                rotated[j].numbers[size - 1 - i] = matrix[i].numbers[j];
+                rotated[j].numbers[size - 1 - i] = data.numbers[j];
             }
         }
     }
