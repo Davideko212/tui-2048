@@ -1,11 +1,12 @@
+use std::io::Lines;
 use itertools::Itertools;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::prelude::{Line, Style, Text};
 use ratatui::style::{Color, Stylize};
 use ratatui::text::Span;
-use ratatui::widgets::{Block, Borders, BorderType, Cell, Paragraph, Row, Table};
-use crate::{App, get_highscore, get_score, INFO_TEXT};
+use ratatui::widgets::{Block, Borders, BorderType, Cell, Clear, Paragraph, Row, Table};
+use crate::{App, get_highscore, get_score, INFO_TEXT, PopUp};
 use crate::colors::value_bg_color;
 
 pub fn ui(f: &mut Frame, app: &mut App) {
@@ -13,7 +14,26 @@ pub fn ui(f: &mut Frame, app: &mut App) {
 
     app.set_colors();
     render_title(f, rects[0]);
-    render_table(f, app, rects[1]);
+    if app.active_popup == PopUp::Reset {
+        let popup = Paragraph::new(vec![
+            Line::from("Are sure you want to reset your current game progress?"),
+            Line::from("y/n") // TODO: actually take user input, better formatting also needed
+        ])
+            .style(Style::default().fg(Color::LightRed))
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .title("Reset")
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Thick)
+            );
+        let block = Block::default().title("Reset").borders(Borders::ALL);
+        let area = centered_rect(rects[1], 60, 30);
+        //f.render_widget(Clear, area); //this clears out the background
+        f.render_widget(popup, area);
+    } else {
+        render_table(f, app, rects[1]);
+    }
     render_sidebar(f, app, rects[2]);
 }
 
@@ -51,7 +71,11 @@ fn render_table(f: &mut Frame, app: &mut App, area: Rect) {
         let cell_y_spacing = "\n".repeat((app.config.field_size as f32 / 2.5).floor() as usize);
         Row::new(
             items.iter().map(|i| Cell::from(
-                Text::from(format!("{}{}", cell_y_spacing, i))
+                vec![
+                    Line::from(""), // TODO: adaptive
+                    Line::from(format!("{i}")).alignment(Alignment::Center),
+                ]
+                //Text::from(format!("{}{}", cell_y_spacing, i))
             ).bg(value_bg_color(*i))).collect_vec()
         )
             .style(Style::new()

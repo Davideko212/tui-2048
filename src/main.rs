@@ -126,9 +126,9 @@ fn check_loss(field: &[Data]) -> bool {
 
     // up
     new_items = Vec::<Data>::new();
-    let mut v = field.clone().to_vec();
-    let mut clone = v.as_mut_slice();
-    rotate(&mut clone, true);
+    let mut v = field.to_vec();
+    let clone = v.as_mut_slice();
+    rotate(clone, true);
     for row in clone.iter() {
         new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
     }
@@ -139,8 +139,8 @@ fn check_loss(field: &[Data]) -> bool {
 
     // down
     new_items = Vec::<Data>::new();
-    let mut clone = v.as_mut_slice();
-    rotate(&mut clone, false);
+    let clone = v.as_mut_slice();
+    rotate(clone, false);
     for row in clone.iter() {
         new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
     }
@@ -170,11 +170,20 @@ enum GameState {
     Config,
 }
 
+#[derive(Eq, PartialEq)]
+enum PopUp {
+    None,
+    Reset,
+    Config,
+    Keymap
+}
+
 struct App {
     pub tablestate: TableState,
     pub gamestate: GameState,
     pub items: Vec<Data>,
     pub config: Config,
+    pub active_popup: PopUp,
 }
 
 impl App {
@@ -191,6 +200,7 @@ impl App {
                 win_value: 2048,
                 reset_popup: true,
             },
+            active_popup: PopUp::None,
         }
     }
 
@@ -273,10 +283,11 @@ impl App {
     }
 
     pub fn reset(&mut self) {
-        self.gamestate = Active;
+        self.active_popup = PopUp::Reset;
+        /*self.gamestate = Active;
         self.items = generate_data();
 
-        set_score(0);
+        set_score(0);*/
     }
 }
 
