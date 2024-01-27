@@ -48,17 +48,22 @@ fn render_title(f: &mut Frame, area: Rect) {
 fn render_table(f: &mut Frame, app: &mut App, area: Rect) {
     let rows = app.items.iter().map(|data| {
         let items = data.numbers();
+        let cell_y_spacing = "\n".repeat((app.config.field_size as f32 / 2.5).floor() as usize);
         Row::new(
-            items.iter().map(|i| Cell::from(Text::from(format!("{}", i))).bg(value_bg_color(*i))).collect_vec()
+            items.iter().map(|i| Cell::from(
+                Text::from(format!("{}{}", cell_y_spacing, i))
+            ).bg(value_bg_color(*i))).collect_vec()
         )
             .style(Style::new()
                 .fg(app.config.colors.row_fg)
                 .bg(app.config.colors.normal_row_color))
-            .height(4)
+            .height(app.config.field_size)
     });
 
-    let t = Table::new(rows, [Constraint::Length(6), Constraint::Length(6), Constraint::Length(6), Constraint::Length(6)])
-        .bg(app.config.colors.buffer_bg);
+    let width_constraint = Constraint::Length(app.config.field_size * 2);
+    let t = Table::new(rows, [width_constraint, width_constraint, width_constraint, width_constraint])
+        .bg(app.config.colors.buffer_bg)
+        .column_spacing(0);
     f.render_stateful_widget(t, area, &mut app.tablestate);
 }
 

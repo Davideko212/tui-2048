@@ -143,7 +143,7 @@ fn check_loss(field: &Vec<Data>) -> bool {
     true
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 struct Data {
     numbers: Vec<u32>,
 }
@@ -190,7 +190,11 @@ impl App {
         rotate(&mut clone, true);
 
         for row in clone.iter() {
-            new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+            let mut slide = movement::slide_left(row.numbers().as_slice());
+            new_items.push(Data { numbers: slide.clone() });
+
+            remove_matches(&mut slide, &mut row.numbers.clone());
+            incr_score(slide.iter().map(|i| *i as u64).sum());
         }
 
         rotate(&mut new_items, false);
@@ -206,7 +210,11 @@ impl App {
         rotate(&mut clone, false);
 
         for row in clone.iter() {
-            new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+            let mut slide = movement::slide_left(row.numbers().as_slice());
+            new_items.push(Data { numbers: slide.clone() });
+
+            remove_matches(&mut slide, &mut row.numbers.clone());
+            incr_score(slide.iter().map(|i| *i as u64).sum());
         }
 
         rotate(&mut new_items, true);
@@ -219,8 +227,13 @@ impl App {
     pub fn left(&mut self) {
         let mut new_items = Vec::<Data>::new();
         for row in self.items.iter() {
-            new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+            let mut slide = movement::slide_left(row.numbers().as_slice());
+            new_items.push(Data { numbers: slide.clone() });
+
+            remove_matches(&mut slide, &mut row.numbers.clone());
+            incr_score(slide.iter().map(|i| *i as u64).sum());
         }
+
         self.items = new_items;
 
         spawn_field(&mut self.items);
@@ -229,9 +242,15 @@ impl App {
 
     pub fn right(&mut self) {
         let mut new_items = Vec::<Data>::new();
+
         for row in self.items.iter() {
-            new_items.push(Data { numbers: movement::slide_right(row.numbers().as_slice()) });
+            let mut slide = movement::slide_right(row.numbers().as_slice());
+            new_items.push(Data { numbers: slide.clone() });
+
+            remove_matches(&mut slide, &mut row.numbers.clone());
+            incr_score(slide.iter().map(|i| *i as u64).sum());
         }
+
         self.items = new_items;
 
         spawn_field(&mut self.items);
@@ -243,10 +262,34 @@ impl App {
     }
 }
 
+fn remove_matches(v1: &mut Vec<u32>, v2: &mut Vec<u32>) {
+    let mut v1_iter = std::mem::take(v1).into_iter().peekable();
+    let mut v2_iter = std::mem::take(v2).into_iter().peekable();
+
+    loop {
+        match (v1_iter.peek(), v2_iter.peek()) {
+            (None,    None   ) => return,
+            (Some(_), None   ) => v1.extend(&mut v1_iter),
+            (None,    Some(_)) => v2.extend(&mut v2_iter),
+            (Some(a), Some(b)) => {
+                use std::cmp::Ordering::*;
+                match a.cmp(b) {
+                    Less    => v1.push(v1_iter.next().unwrap()),
+                    Greater => v2.push(v2_iter.next().unwrap()),
+                    Equal   => {
+                        let _ = v1_iter.next();
+                        let _ = v2_iter.next();
+                    }
+                }
+            }
+        }
+    }
+}
+
 struct Config {
     keymap: KeyMap,
     colors: TableColors,
-    field_size: u8,
+    field_size: u16,
     win_value: u64,
 }
 
@@ -273,7 +316,16 @@ impl KeyMap {
     }
 }
 
+fn set_score(num: u64) {
+    SCORE.store(num, Ordering::SeqCst);
+}
+
 fn incr_score(num: u64) {
+    if get_score() == get_highscore() {
+        incr_highscore(num);
+    } else if get_score() > get_highscore() {
+        set_highscore(num);
+    }
     SCORE.fetch_add(num, Ordering::SeqCst);
 }
 
@@ -283,6 +335,10 @@ fn get_score() -> u64 {
 
 fn set_highscore(num: u64) {
     HIGHSCORE.store(num, Ordering::SeqCst);
+}
+
+fn incr_highscore(num: u64) {
+    HIGHSCORE.fetch_add(num, Ordering::SeqCst);
 }
 
 fn get_highscore() -> u64 {
