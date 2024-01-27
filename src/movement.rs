@@ -35,7 +35,7 @@ pub fn slide_left(data: &[u32]) -> Vec<u32> {
     data.iter().rev().copied().collect_vec()
 }
 
-pub fn rotate(matrix: &mut Vec<Data>, counter_clockwise: bool) {
+pub fn rotate(matrix: &mut [Data], counter_clockwise: bool) {
     let size = matrix.len();
 
     let mut rotated = vec![Data { numbers: vec![0; size] }; size];
@@ -50,7 +50,12 @@ pub fn rotate(matrix: &mut Vec<Data>, counter_clockwise: bool) {
         }
     }
 
-    *matrix = rotated;
+    // black magic
+    if matrix.len() != rotated.len() {}
+
+    unsafe {
+        std::ptr::copy(rotated.as_slice().as_ptr(), matrix.as_mut_ptr(), size);
+    }
 }
 
 #[cfg(test)]
@@ -154,7 +159,7 @@ mod rotate_test {
             Data { numbers: vec![0, 1, 0, 0] },
         ];
 
-        rotate(&mut base, false);
+        rotate(base.as_mut_slice(), false);
         assert_eq!(rotated, base);
     }
 
@@ -174,7 +179,7 @@ mod rotate_test {
             Data { numbers: vec![1, 0, 0, 1] },
         ];
 
-        rotate(&mut base, true);
+        rotate(base.as_mut_slice(), true);
         assert_eq!(rotated, base);
     }
 
@@ -196,7 +201,7 @@ mod rotate_test {
             Data { numbers: vec![0, 1, 1, 0, 0] },
         ];
 
-        rotate(&mut base, false);
+        rotate(base.as_mut_slice(), false);
         assert_eq!(rotated, base);
     }
 
@@ -218,7 +223,7 @@ mod rotate_test {
             Data { numbers: vec![1, 0, 0, 1, 0] },
         ];
 
-        rotate(&mut base, true);
+        rotate(base.as_mut_slice(), true);
         assert_eq!(rotated, base);
     }
 }

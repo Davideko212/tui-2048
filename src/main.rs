@@ -62,7 +62,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
             if key.kind == KeyEventKind::Press {
                 match key.code {
                     code if keymap.exit.contains(&code) => return Ok(()),
-                    code if keymap.reset.contains(&code) => todo!(),
+                    code if keymap.reset.contains(&code) => app.reset(),
                     code if keymap.up.contains(&code) => app.up(),
                     code if keymap.down.contains(&code) => app.down(),
                     code if keymap.left.contains(&code) => app.left(),
@@ -97,7 +97,15 @@ fn spawn_field(vec: &mut [Data]) {
     vec[index / 4].numbers[index % 4] = 2;
 }
 
-fn check_loss(field: &Vec<Data>) -> bool {
+fn check_win(field: &[Data], win_value: &u32) -> bool {
+    for row in field.iter() {
+        if row.numbers.contains(win_value) { return true }
+    }
+
+    false
+}
+
+fn check_loss(field: &[Data]) -> bool {
     // left
     let mut new_items = Vec::<Data>::new();
     for row in field.iter() {
@@ -118,24 +126,25 @@ fn check_loss(field: &Vec<Data>) -> bool {
 
     // up
     new_items = Vec::<Data>::new();
-    let mut clone = field.clone();
+    let mut v = field.clone().to_vec();
+    let mut clone = v.as_mut_slice();
     rotate(&mut clone, true);
     for row in clone.iter() {
         new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
     }
-    rotate(&mut new_items, false);
+    rotate(new_items.as_mut_slice(), false);
     if *field != new_items {
         return false;
     }
 
     // down
     new_items = Vec::<Data>::new();
-    clone = field.clone();
+    let mut clone = v.as_mut_slice();
     rotate(&mut clone, false);
     for row in clone.iter() {
         new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
     }
-    rotate(&mut new_items, true);
+    rotate(new_items.as_mut_slice(), true);
     if *field != new_items {
         return false;
     }
@@ -180,6 +189,7 @@ impl App {
                 keymap: KeyMap::default(),
                 field_size: 4,
                 win_value: 2048,
+                reset_popup: true,
             },
         }
     }
@@ -187,7 +197,7 @@ impl App {
     pub fn up(&mut self) {
         let mut new_items = Vec::<Data>::new();
         let mut clone = self.items.clone();
-        rotate(&mut clone, true);
+        rotate(clone.as_mut_slice(), true);
 
         for row in clone.iter() {
             let mut slide = movement::slide_left(row.numbers().as_slice());
@@ -197,17 +207,18 @@ impl App {
             incr_score(slide.iter().map(|i| *i as u64).sum());
         }
 
-        rotate(&mut new_items, false);
+        rotate(new_items.as_mut_slice(), false);
         self.items = new_items;
 
         spawn_field(&mut self.items);
+        if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
         if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn down(&mut self) {
         let mut new_items = Vec::<Data>::new();
         let mut clone = self.items.clone();
-        rotate(&mut clone, false);
+        rotate(clone.as_mut_slice(), false);
 
         for row in clone.iter() {
             let mut slide = movement::slide_left(row.numbers().as_slice());
@@ -217,7 +228,7 @@ impl App {
             incr_score(slide.iter().map(|i| *i as u64).sum());
         }
 
-        rotate(&mut new_items, true);
+        rotate(new_items.as_mut_slice(), true);
         self.items = new_items;
 
         spawn_field(&mut self.items);
@@ -260,6 +271,13 @@ impl App {
     pub fn set_colors(&mut self) {
         self.config.colors = TableColors::default();
     }
+
+    pub fn reset(&mut self) {
+        self.gamestate = Active;
+        self.items = generate_data();
+
+        set_score(0);
+    }
 }
 
 fn remove_matches(v1: &mut Vec<u32>, v2: &mut Vec<u32>) {
@@ -291,6 +309,7 @@ struct Config {
     colors: TableColors,
     field_size: u16,
     win_value: u64,
+    reset_popup: bool,
 }
 
 #[derive(Clone)]
@@ -324,7 +343,7 @@ fn incr_score(num: u64) {
     if get_score() == get_highscore() {
         incr_highscore(num);
     } else if get_score() > get_highscore() {
-        set_highscore(num);
+        set_highscore(get_score());
     }
     SCORE.fetch_add(num, Ordering::SeqCst);
 }
