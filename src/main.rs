@@ -63,6 +63,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<(
                 match key.code {
                     code if keymap.exit.contains(&code) => return Ok(()),
                     code if keymap.reset.contains(&code) => app.reset(),
+                    code if keymap.confirm.contains(&code) => app.confirm(),
                     code if keymap.up.contains(&code) => app.up(),
                     code if keymap.down.contains(&code) => app.down(),
                     code if keymap.left.contains(&code) => app.left(),
@@ -170,12 +171,20 @@ enum GameState {
     Config,
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Default)]
 enum PopUp {
+    #[default]
     None,
     Reset,
     Config,
     Keymap
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+enum SelectedOption {
+    Yes,
+    #[default]
+    No,
 }
 
 struct App {
@@ -184,6 +193,7 @@ struct App {
     pub items: Vec<Data>,
     pub config: Config,
     pub active_popup: PopUp,
+    pub selected_option: SelectedOption,
 }
 
 impl App {
@@ -201,81 +211,146 @@ impl App {
                 reset_popup: true,
             },
             active_popup: PopUp::None,
+            selected_option: SelectedOption::default(),
         }
     }
 
     pub fn up(&mut self) {
-        let mut new_items = Vec::<Data>::new();
-        let mut clone = self.items.clone();
-        rotate(clone.as_mut_slice(), true);
+        match self.active_popup {
+            PopUp::None => {
+                let mut new_items = Vec::<Data>::new();
+                let mut clone = self.items.clone();
+                rotate(clone.as_mut_slice(), true);
 
-        for row in clone.iter() {
-            let mut slide = movement::slide_left(row.numbers().as_slice());
-            new_items.push(Data { numbers: slide.clone() });
+                for row in clone.iter() {
+                    let mut slide = movement::slide_left(row.numbers().as_slice());
+                    new_items.push(Data { numbers: slide.clone() });
 
-            remove_matches(&mut slide, &mut row.numbers.clone());
-            incr_score(slide.iter().map(|i| *i as u64).sum());
+                    remove_matches(&mut slide, &mut row.numbers.clone());
+                    incr_score(slide.iter().map(|i| *i as u64).sum());
+                }
+
+                rotate(new_items.as_mut_slice(), false);
+                self.items = new_items;
+
+                spawn_field(&mut self.items);
+                if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
+                if check_loss(&self.items) { self.gamestate = Loss }
+            }
+            PopUp::Reset => {
+                // nothing :)
+            }
+            PopUp::Config => {
+                todo!()
+            }
+            PopUp::Keymap => {
+                todo!()
+            }
         }
-
-        rotate(new_items.as_mut_slice(), false);
-        self.items = new_items;
-
-        spawn_field(&mut self.items);
-        if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
-        if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn down(&mut self) {
-        let mut new_items = Vec::<Data>::new();
-        let mut clone = self.items.clone();
-        rotate(clone.as_mut_slice(), false);
+        match self.active_popup {
+            PopUp::None => {
+                let mut new_items = Vec::<Data>::new();
+                let mut clone = self.items.clone();
+                rotate(clone.as_mut_slice(), false);
 
-        for row in clone.iter() {
-            let mut slide = movement::slide_left(row.numbers().as_slice());
-            new_items.push(Data { numbers: slide.clone() });
+                for row in clone.iter() {
+                    let mut slide = movement::slide_left(row.numbers().as_slice());
+                    new_items.push(Data { numbers: slide.clone() });
 
-            remove_matches(&mut slide, &mut row.numbers.clone());
-            incr_score(slide.iter().map(|i| *i as u64).sum());
+                    remove_matches(&mut slide, &mut row.numbers.clone());
+                    incr_score(slide.iter().map(|i| *i as u64).sum());
+                }
+
+                rotate(new_items.as_mut_slice(), true);
+                self.items = new_items;
+
+                spawn_field(&mut self.items);
+                if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
+                if check_loss(&self.items) { self.gamestate = Loss }
+            }
+            PopUp::Reset => {
+                // nothing :)
+            }
+            PopUp::Config => {
+                todo!()
+            }
+            PopUp::Keymap => {
+                todo!()
+            }
         }
-
-        rotate(new_items.as_mut_slice(), true);
-        self.items = new_items;
-
-        spawn_field(&mut self.items);
-        if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn left(&mut self) {
-        let mut new_items = Vec::<Data>::new();
-        for row in self.items.iter() {
-            let mut slide = movement::slide_left(row.numbers().as_slice());
-            new_items.push(Data { numbers: slide.clone() });
+        match self.active_popup {
+            PopUp::None => {
+                let mut new_items = Vec::<Data>::new();
 
-            remove_matches(&mut slide, &mut row.numbers.clone());
-            incr_score(slide.iter().map(|i| *i as u64).sum());
+                for row in self.items.iter() {
+                    let mut slide = movement::slide_left(row.numbers().as_slice());
+                    new_items.push(Data { numbers: slide.clone() });
+
+                    remove_matches(&mut slide, &mut row.numbers.clone());
+                    incr_score(slide.iter().map(|i| *i as u64).sum());
+                }
+
+                self.items = new_items;
+
+                spawn_field(&mut self.items);
+                if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
+                if check_loss(&self.items) { self.gamestate = Loss }
+            }
+            PopUp::Reset => {
+                if self.selected_option == SelectedOption::No {
+                    self.selected_option = SelectedOption::Yes
+                } else {
+                    self.selected_option = SelectedOption::No
+                }
+            }
+            PopUp::Config => {
+                todo!()
+            }
+            PopUp::Keymap => {
+                todo!()
+            }
         }
-
-        self.items = new_items;
-
-        spawn_field(&mut self.items);
-        if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn right(&mut self) {
-        let mut new_items = Vec::<Data>::new();
+        match self.active_popup {
+            PopUp::None => {
+                let mut new_items = Vec::<Data>::new();
 
-        for row in self.items.iter() {
-            let mut slide = movement::slide_right(row.numbers().as_slice());
-            new_items.push(Data { numbers: slide.clone() });
+                for row in self.items.iter() {
+                    let mut slide = movement::slide_right(row.numbers().as_slice());
+                    new_items.push(Data { numbers: slide.clone() });
 
-            remove_matches(&mut slide, &mut row.numbers.clone());
-            incr_score(slide.iter().map(|i| *i as u64).sum());
+                    remove_matches(&mut slide, &mut row.numbers.clone());
+                    incr_score(slide.iter().map(|i| *i as u64).sum());
+                }
+
+                self.items = new_items;
+
+                spawn_field(&mut self.items);
+                if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
+                if check_loss(&self.items) { self.gamestate = Loss }
+            }
+            PopUp::Reset => {
+                if self.selected_option == SelectedOption::No {
+                    self.selected_option = SelectedOption::Yes
+                } else {
+                    self.selected_option = SelectedOption::No
+                }
+            }
+            PopUp::Config => {
+                todo!()
+            }
+            PopUp::Keymap => {
+                todo!()
+            }
         }
-
-        self.items = new_items;
-
-        spawn_field(&mut self.items);
-        if check_loss(&self.items) { self.gamestate = Loss }
     }
 
     pub fn set_colors(&mut self) {
@@ -283,14 +358,44 @@ impl App {
     }
 
     pub fn reset(&mut self) {
-        self.active_popup = PopUp::Reset;
-        /*self.gamestate = Active;
-        self.items = generate_data();
+        if self.config.reset_popup {
+            if self.active_popup == PopUp::None {
+                self.active_popup = PopUp::Reset;
+            } else {
+                self.active_popup = PopUp::None;
+            }
+        } else {
+            self.items = generate_data();
+            set_score(0);
+        }
+    }
 
-        set_score(0);*/
+    pub fn confirm(&mut self) {
+        match self.active_popup {
+            PopUp::None => {
+                // nothing :)
+            }
+            PopUp::Reset => {
+                if self.selected_option == SelectedOption::Yes {
+                    self.gamestate = Active;
+                    self.items = generate_data();
+
+                    set_score(0);
+                }
+                self.selected_option = SelectedOption::default();
+                self.active_popup = PopUp::None;
+            }
+            PopUp::Config => {
+                todo!()
+            }
+            PopUp::Keymap => {
+                todo!()
+            }
+        }
     }
 }
 
+// thank you stack overflow
 fn remove_matches(v1: &mut Vec<u32>, v2: &mut Vec<u32>) {
     let mut v1_iter = std::mem::take(v1).into_iter().peekable();
     let mut v2_iter = std::mem::take(v2).into_iter().peekable();
@@ -325,12 +430,13 @@ struct Config {
 
 #[derive(Clone)]
 pub struct KeyMap {
-    pub up: Vec<KeyCode>,
+    up: Vec<KeyCode>,
     down: Vec<KeyCode>,
     left: Vec<KeyCode>,
     right: Vec<KeyCode>,
     exit: Vec<KeyCode>,
     reset: Vec<KeyCode>,
+    confirm: Vec<KeyCode>,
 }
 
 impl KeyMap {
@@ -342,6 +448,7 @@ impl KeyMap {
             right: vec![Char('d'), Right],
             exit: vec![Char('q'), Esc],
             reset: vec![Char('r'), Backspace],
+            confirm: vec![Enter],
         }
     }
 }

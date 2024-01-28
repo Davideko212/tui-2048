@@ -1,4 +1,3 @@
-use std::io::Lines;
 use itertools::Itertools;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
@@ -17,7 +16,8 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     if app.active_popup == PopUp::Reset {
         let popup = Paragraph::new(vec![
             Line::from("Are sure you want to reset your current game progress?"),
-            Line::from("y/n") // TODO: actually take user input, better formatting also needed
+            Line::from("y/n"), // TODO: actually take user input, better formatting also needed
+            Line::from(format!("Selected: {:?}", app.selected_option)) // temp
         ])
             .style(Style::default().fg(Color::LightRed))
             .alignment(Alignment::Center)
@@ -27,7 +27,6 @@ pub fn ui(f: &mut Frame, app: &mut App) {
                     .borders(Borders::ALL)
                     .border_type(BorderType::Thick)
             );
-        let block = Block::default().title("Reset").borders(Borders::ALL);
         let area = centered_rect(rects[1], 60, 30);
         //f.render_widget(Clear, area); //this clears out the background
         f.render_widget(popup, area);
