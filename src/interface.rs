@@ -5,8 +5,9 @@ use ratatui::prelude::{Line, Style, Text};
 use ratatui::style::{Color, Stylize};
 use ratatui::text::Span;
 use ratatui::widgets::{Block, Borders, BorderType, Cell, Clear, Paragraph, Row, Table};
-use crate::{App, get_highscore, get_score, INFO_TEXT, PopUp};
+use crate::{App, get_highscore, get_score, PopUp};
 use crate::colors::value_bg_color;
+use crate::util::INFO_TEXT;
 
 pub fn ui(f: &mut Frame, app: &mut App) {
     let rects = Layout::new(Direction::Vertical, [Constraint::Length(5), Constraint::Min(15), Constraint::Length(5)]).split(f.size());
