@@ -2,7 +2,8 @@ use std::cmp::Ordering::{Equal, Greater, Less};
 use std::sync::atomic::{AtomicU64, Ordering};
 use itertools::Itertools;
 use rand::{Rng, thread_rng};
-use crate::{Data, movement};
+use crate::{Data, Direction, movement};
+use crate::Direction::*;
 use crate::movement::rotate;
 
 pub const INFO_TEXT: &str =
@@ -31,7 +32,12 @@ pub fn spawn_field(vec: &mut [Data]) {
     while vec[index / 4].numbers[index % 4] != 0 {
         index = thread_rng().gen_range(0..16);
     }
-    vec[index / 4].numbers[index % 4] = 2;
+
+    vec[index / 4].numbers[index % 4] = if thread_rng().gen_ratio(1, 6) {
+        4
+    } else {
+        2
+    };
 }
 
 pub fn check_win(field: &[Data], win_value: &u32) -> bool {
@@ -43,50 +49,34 @@ pub fn check_win(field: &[Data], win_value: &u32) -> bool {
 }
 
 pub fn check_loss(field: &[Data]) -> bool {
-    // left
+    !(check_move(field, Left) || check_move(field, Right) || check_move(field, Up) || check_move(field, Down))
+}
+
+// TODO: FIXXXXX, this isnt always returning the correct value (maybe write tests? :))
+pub fn check_move(field: &[Data], dir: Direction) -> bool {
     let mut new_items = Vec::<Data>::new();
-    for row in field.iter() {
-        new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
-    }
-    if *field != new_items {
-        return false;
+
+    if dir == Up || dir == Down {
+        let mut v = field.to_vec();
+        let clone = v.as_mut_slice();
+        rotate(clone, dir == Up);
+
+        for row in clone.iter() {
+            new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
+        }
+
+        rotate(new_items.as_mut_slice(), dir == Down);
+    } else {
+        for row in field.iter() {
+            new_items.push(Data { numbers: if dir == Left {
+                movement::slide_left(row.numbers().as_slice())
+            } else {
+                movement::slide_right(row.numbers().as_slice())
+            }});
+        }
     }
 
-    // right
-    new_items = Vec::<Data>::new();
-    for row in field.iter() {
-        new_items.push(Data { numbers: movement::slide_right(row.numbers().as_slice()) });
-    }
-    if *field != new_items {
-        return false;
-    }
-
-    // up
-    new_items = Vec::<Data>::new();
-    let mut v = field.to_vec();
-    let clone = v.as_mut_slice();
-    rotate(clone, true);
-    for row in clone.iter() {
-        new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
-    }
-    rotate(new_items.as_mut_slice(), false);
-    if *field != new_items {
-        return false;
-    }
-
-    // down
-    new_items = Vec::<Data>::new();
-    let clone = v.as_mut_slice();
-    rotate(clone, false);
-    for row in clone.iter() {
-        new_items.push(Data { numbers: movement::slide_left(row.numbers().as_slice()) });
-    }
-    rotate(new_items.as_mut_slice(), true);
-    if *field != new_items {
-        return false;
-    }
-
-    true
+    *field == new_items
 }
 
 // thank you stack overflow

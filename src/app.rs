@@ -6,10 +6,11 @@ use ratatui::Terminal;
 use ratatui::widgets::TableState;
 use crate::{Config, Data, GameState, KeyMap, movement, PopUp, SelectedOption};
 use crate::colors::TableColors;
-use crate::GameState::{Active, Loss, Win};
+use crate::Direction::*;
+use crate::GameState::*;
 use crate::interface::ui;
 use crate::movement::rotate;
-use crate::util::{check_loss, check_win, generate_data, incr_score, remove_matches, set_score, spawn_field};
+use crate::util::{check_loss, check_move, check_win, generate_data, incr_score, remove_matches, set_score, spawn_field};
 
 pub struct App {
     pub tablestate: TableState,
@@ -57,7 +58,7 @@ impl App {
                 rotate(new_items.as_mut_slice(), false);
                 self.items = new_items;
 
-                spawn_field(&mut self.items);
+                if check_move(&self.items, Up) { spawn_field(&mut self.items) }
                 if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
@@ -91,7 +92,7 @@ impl App {
                 rotate(new_items.as_mut_slice(), true);
                 self.items = new_items;
 
-                spawn_field(&mut self.items);
+                if check_move(&self.items, Down) { spawn_field(&mut self.items) }
                 if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
@@ -122,7 +123,7 @@ impl App {
 
                 self.items = new_items;
 
-                spawn_field(&mut self.items);
+                if check_move(&self.items, Left) { spawn_field(&mut self.items) }
                 if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
@@ -157,7 +158,7 @@ impl App {
 
                 self.items = new_items;
 
-                spawn_field(&mut self.items);
+                if check_move(&self.items, Right) { spawn_field(&mut self.items) }
                 if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
