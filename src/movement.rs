@@ -50,12 +50,7 @@ pub fn rotate(matrix: &mut [Data], counter_clockwise: bool) {
         }
     }
 
-    // black magic
-    if matrix.len() != rotated.len() {}
-
-    unsafe {
-        std::ptr::copy(rotated.as_slice().as_ptr(), matrix.as_mut_ptr(), size);
-    }
+    matrix.clone_from_slice(rotated.as_slice());
 }
 
 #[cfg(test)]
