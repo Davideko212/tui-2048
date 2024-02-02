@@ -1,11 +1,11 @@
 use itertools::Itertools;
 use ratatui::Frame;
-use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
+use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect, Flex};
 use ratatui::prelude::{Line, Style, Text};
-use ratatui::style::{Color, Stylize};
+use ratatui::style::{Color, Modifier, Stylize};
 use ratatui::text::Span;
 use ratatui::widgets::{Block, Borders, BorderType, Cell, Clear, Paragraph, Row, Table};
-use crate::{App, get_highscore, get_score, PopUp};
+use crate::{App, get_highscore, get_score, PopUp, SelectedOption};
 use crate::colors::value_bg_color;
 use crate::util::INFO_TEXT;
 
@@ -17,8 +17,10 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     if app.active_popup == PopUp::Reset {
         let popup = Paragraph::new(vec![
             Line::from("Are sure you want to reset your current game progress?"),
-            Line::from("y/n"), // TODO: actually take user input, better formatting also needed
-            Line::from(format!("Selected: {:?}", app.selected_option)) // temp
+            Line::default(),
+            // TODO: purge duct tape solution found below
+            Span::from("Yes").style(Style::default().add_modifier(if app.selected_option == SelectedOption::Yes { Modifier::REVERSED } else { Modifier::empty() })).to_centered_line(),
+            Span::from("No").style(Style::default().add_modifier(if app.selected_option == SelectedOption::No { Modifier::REVERSED } else { Modifier::empty() })).to_centered_line(),
         ])
             .style(Style::default().fg(Color::LightRed))
             .alignment(Alignment::Center)
