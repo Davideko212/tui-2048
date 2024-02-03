@@ -19,6 +19,7 @@ pub struct App {
     pub config: Config,
     pub active_popup: PopUp,
     pub selected_option: SelectedOption,
+    pub option_lock: bool,
 }
 
 impl App {
@@ -37,10 +38,15 @@ impl App {
             },
             active_popup: PopUp::None,
             selected_option: SelectedOption::default(),
+            option_lock: false,
         }
     }
 
     pub fn up(&mut self) {
+        if self.option_lock {
+            return
+        }
+
         match self.active_popup {
             PopUp::None => {
                 let mut new_items = Vec::<Data>::new();
@@ -66,15 +72,22 @@ impl App {
                 // nothing :)
             }
             PopUp::Config => {
-                todo!()
+                self.tablestate.select(Some((self.tablestate.selected().unwrap() as i32 - 1).rem_euclid(5) as usize));
             }
             PopUp::Keymap => {
+                todo!()
+            }
+            PopUp::Colors => {
                 todo!()
             }
         }
     }
 
     pub fn down(&mut self) {
+        if self.option_lock {
+            return
+        }
+
         match self.active_popup {
             PopUp::None => {
                 let mut new_items = Vec::<Data>::new();
@@ -100,15 +113,23 @@ impl App {
                 // nothing :)
             }
             PopUp::Config => {
-                todo!()
+                self.tablestate.select(Some((self.tablestate.selected().unwrap() + 1) % 5));
             }
             PopUp::Keymap => {
+                todo!()
+            }
+            PopUp::Colors => {
                 todo!()
             }
         }
     }
 
     pub fn left(&mut self) {
+        if self.option_lock {
+            // TODO
+            return
+        }
+
         match self.active_popup {
             PopUp::None => {
                 let mut new_items = Vec::<Data>::new();
@@ -140,10 +161,18 @@ impl App {
             PopUp::Keymap => {
                 todo!()
             }
+            PopUp::Colors => {
+                todo!()
+            }
         }
     }
 
     pub fn right(&mut self) {
+        if self.option_lock {
+            // TODO
+            return
+        }
+
         match self.active_popup {
             PopUp::None => {
                 let mut new_items = Vec::<Data>::new();
@@ -175,6 +204,9 @@ impl App {
             PopUp::Keymap => {
                 todo!()
             }
+            PopUp::Colors => {
+                todo!()
+            }
         }
     }
 
@@ -186,7 +218,7 @@ impl App {
         if self.config.reset_popup {
             if self.active_popup == PopUp::None {
                 self.active_popup = PopUp::Reset;
-            } else {
+            } else if self.active_popup == PopUp::Reset {
                 self.active_popup = PopUp::None;
             }
         } else {
@@ -195,7 +227,21 @@ impl App {
         }
     }
 
+    pub fn config(&mut self) {
+        if self.active_popup == PopUp::None {
+            self.tablestate.select(Some(0));
+            self.active_popup = PopUp::Config;
+        } else if self.active_popup == PopUp::Config {
+            self.active_popup = PopUp::None;
+        }
+    }
+
     pub fn confirm(&mut self) {
+        if self.option_lock {
+            self.option_lock = false;
+            return
+        }
+
         match self.active_popup {
             PopUp::None => {
                 // nothing :)
@@ -211,9 +257,17 @@ impl App {
                 self.active_popup = PopUp::None;
             }
             PopUp::Config => {
-                todo!()
+                match self.tablestate.selected().unwrap() {
+                    0 => self.active_popup = PopUp::Keymap,
+                    1 => self.active_popup = PopUp::Colors,
+                    2..=4 => self.option_lock = true,
+                    _ => panic!()
+                }
             }
             PopUp::Keymap => {
+                todo!()
+            }
+            PopUp::Colors => {
                 todo!()
             }
         }
@@ -232,6 +286,7 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                     code if keymap.exit.contains(&code) => return Ok(()),
                     code if keymap.reset.contains(&code) => app.reset(),
                     code if keymap.confirm.contains(&code) => app.confirm(),
+                    code if keymap.config.contains(&code) => app.config(),
                     code if keymap.up.contains(&code) => app.up(),
                     code if keymap.down.contains(&code) => app.down(),
                     code if keymap.left.contains(&code) => app.left(),

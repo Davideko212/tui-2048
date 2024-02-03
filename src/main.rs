@@ -69,7 +69,8 @@ enum PopUp {
     None,
     Reset,
     Config,
-    Keymap
+    Keymap,
+    Colors,
 }
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
@@ -96,6 +97,7 @@ pub struct KeyMap {
     exit: Vec<KeyCode>,
     reset: Vec<KeyCode>,
     confirm: Vec<KeyCode>,
+    config: Vec<KeyCode>,
 }
 
 impl KeyMap {
@@ -108,6 +110,7 @@ impl KeyMap {
             exit: vec![Char('q'), Esc],
             reset: vec![Char('r'), Backspace],
             confirm: vec![Enter],
+            config: vec![Char('c')],
         }
     }
 }

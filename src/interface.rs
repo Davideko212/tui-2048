@@ -1,10 +1,10 @@
 use itertools::Itertools;
 use ratatui::Frame;
-use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect, Flex};
+use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::prelude::{Line, Style, Text};
 use ratatui::style::{Color, Modifier, Stylize};
 use ratatui::text::Span;
-use ratatui::widgets::{Block, Borders, BorderType, Cell, Clear, Paragraph, Row, Table};
+use ratatui::widgets::{Block, Borders, BorderType, Cell, Clear, HighlightSpacing, Paragraph, Row, Table, TableState};
 use crate::{App, get_highscore, get_score, PopUp, SelectedOption};
 use crate::colors::value_bg_color;
 use crate::util::INFO_TEXT;
@@ -14,28 +14,78 @@ pub fn ui(f: &mut Frame, app: &mut App) {
 
     app.set_colors();
     render_title(f, rects[0]);
-    if app.active_popup == PopUp::Reset {
-        let popup = Paragraph::new(vec![
-            Line::from("Are sure you want to reset your current game progress?"),
-            Line::default(),
-            // TODO: purge duct tape solution found below
-            Span::from("Yes").style(Style::default().add_modifier(if app.selected_option == SelectedOption::Yes { Modifier::REVERSED } else { Modifier::empty() })).to_centered_line(),
-            Span::from("No").style(Style::default().add_modifier(if app.selected_option == SelectedOption::No { Modifier::REVERSED } else { Modifier::empty() })).to_centered_line(),
-        ])
-            .style(Style::default().fg(Color::LightRed))
-            .alignment(Alignment::Center)
-            .block(
-                Block::default()
-                    .title("Reset")
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Thick)
-            );
-        let area = centered_rect(rects[1], 60, 30);
-        //f.render_widget(Clear, area); //this clears out the background
-        f.render_widget(popup, area);
-    } else {
-        render_table(f, app, rects[1]);
+
+    match app.active_popup {
+        PopUp::Reset => {
+            let popup = Paragraph::new(vec![
+                Line::from("Are sure you want to reset your current game progress?"),
+                Line::default(),
+                // TODO: purge duct tape solution found below
+                Span::from("Yes").style(Style::default().add_modifier(if app.selected_option == SelectedOption::Yes { Modifier::REVERSED } else { Modifier::empty() })).to_centered_line(),
+                Span::from("No").style(Style::default().add_modifier(if app.selected_option == SelectedOption::No { Modifier::REVERSED } else { Modifier::empty() })).to_centered_line(),
+            ])
+                .style(Style::default().fg(Color::LightRed))
+                .alignment(Alignment::Center)
+                .block(
+                    Block::default()
+                        .title("Reset")
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Thick)
+                );
+            let area = centered_rect(rects[1], 60, 30);
+            //f.render_widget(Clear, area); //this clears out the background
+            f.render_widget(popup, area);
+        }
+        PopUp::Config => {
+            let rows = vec![
+                Row::new(vec![
+                    Cell::from("Control Mapping:"),
+                    Cell::from("Edit"),
+                ]),
+                Row::new(vec![
+                    Cell::from("Color Scheme:"),
+                    Cell::from("Edit"),
+                ]),
+                Row::new(vec![
+                    Cell::from("Field Size:"),
+                    Cell::from(app.config.field_size.to_string()),
+                ]),
+                Row::new(vec![
+                    Cell::from("Win Value:"),
+                    Cell::from(app.config.win_value.to_string()),
+                ]),
+                Row::new(vec![
+                    Cell::from("Show Reset Popup:"),
+                    Cell::from(app.config.reset_popup.to_string()),
+                ]),
+            ];
+            let popup = Table::new(
+                rows,
+                [
+                    Constraint::Min(10),
+                    Constraint::Min(5),
+                ],
+            )
+                .style(Style::default().fg(Color::LightYellow))
+                .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(Color::LightCyan))
+                .block(
+                    Block::default()
+                        .title("Config")
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Thick)
+                );
+            let area = centered_rect(rects[1], 50, 35);
+            f.render_stateful_widget(popup, area, &mut app.tablestate);
+        }
+        PopUp::Keymap => {
+            todo!()
+        }
+        PopUp::Colors => {
+            todo!()
+        }
+        PopUp::None => render_table(f, app, rects[1])
     }
+
     render_sidebar(f, app, rects[2]);
 }
 
