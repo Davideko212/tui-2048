@@ -17,6 +17,9 @@ use crate::colors::TableColors;
 use crate::GameState::*;
 use crate::util::*;
 
+const FIELD_SIZES: [u16; 7] = [3, 4, 5, 6, 7, 8, 9];
+const WIN_VALUES: [u32; 12] = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384];
+
 fn main() -> Result<(), Box<dyn Error>> {
     // setup terminal
     enable_raw_mode()?;
@@ -83,8 +86,8 @@ enum SelectedOption {
 struct Config {
     keymap: KeyMap,
     colors: TableColors,
-    field_size: u16,
-    win_value: u64,
+    field_size: usize,
+    win_value: usize,
     reset_popup: bool,
 }
 

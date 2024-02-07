@@ -4,7 +4,7 @@ use crossterm::event::{Event, KeyEventKind};
 use ratatui::backend::Backend;
 use ratatui::Terminal;
 use ratatui::widgets::TableState;
-use crate::{Config, Data, GameState, KeyMap, movement, PopUp, SelectedOption};
+use crate::{Config, Data, FIELD_SIZES, GameState, KeyMap, movement, PopUp, SelectedOption, WIN_VALUES};
 use crate::colors::TableColors;
 use crate::Direction::*;
 use crate::GameState::*;
@@ -32,8 +32,8 @@ impl App {
             config: Config {
                 colors: TableColors::default(),
                 keymap: KeyMap::default(),
-                field_size: 4,
-                win_value: 2048,
+                field_size: 1,
+                win_value: 8,
                 reset_popup: true,
             },
             active_popup: PopUp::None,
@@ -44,7 +44,7 @@ impl App {
 
     pub fn up(&mut self) {
         if self.option_lock {
-            return
+            return;
         }
 
         match self.active_popup {
@@ -65,7 +65,7 @@ impl App {
                 self.items = new_items;
 
                 if check_move(&self.items, Up) { spawn_field(&mut self.items) }
-                if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
+                if check_win(&self.items, &WIN_VALUES[self.config.win_value]) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
             PopUp::Reset => {
@@ -75,7 +75,7 @@ impl App {
                 self.tablestate.select(Some((self.tablestate.selected().unwrap() as i32 - 1).rem_euclid(5) as usize));
             }
             PopUp::Keymap => {
-                todo!()
+                self.tablestate.select(Some((self.tablestate.selected().unwrap() as i32 - 1).rem_euclid(8) as usize));
             }
             PopUp::Colors => {
                 todo!()
@@ -85,7 +85,7 @@ impl App {
 
     pub fn down(&mut self) {
         if self.option_lock {
-            return
+            return;
         }
 
         match self.active_popup {
@@ -106,7 +106,7 @@ impl App {
                 self.items = new_items;
 
                 if check_move(&self.items, Down) { spawn_field(&mut self.items) }
-                if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
+                if check_win(&self.items, &WIN_VALUES[self.config.win_value]) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
             PopUp::Reset => {
@@ -116,7 +116,7 @@ impl App {
                 self.tablestate.select(Some((self.tablestate.selected().unwrap() + 1) % 5));
             }
             PopUp::Keymap => {
-                todo!()
+                self.tablestate.select(Some((self.tablestate.selected().unwrap() + 1) % 8));
             }
             PopUp::Colors => {
                 todo!()
@@ -125,11 +125,6 @@ impl App {
     }
 
     pub fn left(&mut self) {
-        if self.option_lock {
-            // TODO
-            return
-        }
-
         match self.active_popup {
             PopUp::None => {
                 let mut new_items = Vec::<Data>::new();
@@ -145,7 +140,7 @@ impl App {
                 self.items = new_items;
 
                 if check_move(&self.items, Left) { spawn_field(&mut self.items) }
-                if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
+                if check_win(&self.items, &WIN_VALUES[self.config.win_value]) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
             PopUp::Reset => {
@@ -156,10 +151,25 @@ impl App {
                 }
             }
             PopUp::Config => {
-                todo!()
+                if self.option_lock {
+                    match self.tablestate.selected().unwrap() {
+                        2 => {
+                            if self.config.field_size > 0 {
+                                self.config.field_size -= 1
+                            }
+                        }
+                        3 => {
+                            if self.config.win_value > 0 {
+                                self.config.win_value -= 1
+                            }
+                        },
+                        4 => self.config.reset_popup = !self.config.reset_popup,
+                        _ => unimplemented!()
+                    }
+                }
             }
             PopUp::Keymap => {
-                todo!()
+                // nothing :)
             }
             PopUp::Colors => {
                 todo!()
@@ -168,11 +178,6 @@ impl App {
     }
 
     pub fn right(&mut self) {
-        if self.option_lock {
-            // TODO
-            return
-        }
-
         match self.active_popup {
             PopUp::None => {
                 let mut new_items = Vec::<Data>::new();
@@ -188,7 +193,7 @@ impl App {
                 self.items = new_items;
 
                 if check_move(&self.items, Right) { spawn_field(&mut self.items) }
-                if check_win(&self.items, &(self.config.win_value as u32)) { self.gamestate = Win }
+                if check_win(&self.items, &WIN_VALUES[self.config.win_value]) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
             PopUp::Reset => {
@@ -199,10 +204,25 @@ impl App {
                 }
             }
             PopUp::Config => {
-                todo!()
+                if self.option_lock {
+                    match self.tablestate.selected().unwrap() {
+                        2 => {
+                            if self.config.field_size < FIELD_SIZES.len() {
+                                self.config.field_size += 1
+                            }
+                        }
+                        3 => {
+                            if self.config.win_value < WIN_VALUES.len() {
+                                self.config.win_value += 1
+                            }
+                        },
+                        4 => self.config.reset_popup = !self.config.reset_popup,
+                        _ => unimplemented!()
+                    }
+                }
             }
             PopUp::Keymap => {
-                todo!()
+                // nothing :)
             }
             PopUp::Colors => {
                 todo!()
@@ -232,6 +252,7 @@ impl App {
             self.tablestate.select(Some(0));
             self.active_popup = PopUp::Config;
         } else if self.active_popup == PopUp::Config {
+            self.option_lock = false;
             self.active_popup = PopUp::None;
         }
     }
@@ -239,7 +260,7 @@ impl App {
     pub fn confirm(&mut self) {
         if self.option_lock {
             self.option_lock = false;
-            return
+            return;
         }
 
         match self.active_popup {
@@ -261,7 +282,7 @@ impl App {
                     0 => self.active_popup = PopUp::Keymap,
                     1 => self.active_popup = PopUp::Colors,
                     2..=4 => self.option_lock = true,
-                    _ => panic!()
+                    _ => unimplemented!()
                 }
             }
             PopUp::Keymap => {

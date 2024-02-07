@@ -1,3 +1,6 @@
+use std::any::{Any, TypeId};
+use std::fmt::Display;
+use std::ops::Index;
 use itertools::Itertools;
 use ratatui::Frame;
 use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
@@ -5,7 +8,7 @@ use ratatui::prelude::{Line, Style, Text};
 use ratatui::style::{Color, Modifier, Stylize};
 use ratatui::text::Span;
 use ratatui::widgets::{Block, Borders, BorderType, Cell, Clear, HighlightSpacing, Paragraph, Row, Table, TableState};
-use crate::{App, get_highscore, get_score, PopUp, SelectedOption};
+use crate::{App, FIELD_SIZES, get_highscore, get_score, PopUp, SelectedOption, WIN_VALUES};
 use crate::colors::value_bg_color;
 use crate::util::INFO_TEXT;
 
@@ -14,6 +17,12 @@ pub fn ui(f: &mut Frame, app: &mut App) {
 
     app.set_colors();
     render_title(f, rects[0]);
+
+    let mut config_highlight = Style::default().add_modifier(Modifier::REVERSED).fg(Color::LightCyan);
+    if app.option_lock {
+        // TODO: make this work :)
+        config_highlight = config_highlight.add_modifier(Modifier::SLOW_BLINK);
+    }
 
     match app.active_popup {
         PopUp::Reset => {
@@ -48,15 +57,15 @@ pub fn ui(f: &mut Frame, app: &mut App) {
                 ]),
                 Row::new(vec![
                     Cell::from("Field Size:"),
-                    Cell::from(app.config.field_size.to_string()),
+                    Cell::from(option_arrows(FIELD_SIZES[app.config.field_size].to_string(), FIELD_SIZES.iter().map(|i| i.to_string()).collect())),
                 ]),
                 Row::new(vec![
                     Cell::from("Win Value:"),
-                    Cell::from(app.config.win_value.to_string()),
+                    Cell::from(option_arrows(WIN_VALUES[app.config.win_value].to_string(), WIN_VALUES.iter().map(|i| i.to_string()).collect())),
                 ]),
                 Row::new(vec![
                     Cell::from("Show Reset Popup:"),
-                    Cell::from(app.config.reset_popup.to_string()),
+                    Cell::from(option_arrows(app.config.reset_popup.to_string(), Box::from([]))),
                 ]),
             ];
             let popup = Table::new(
@@ -67,7 +76,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
                 ],
             )
                 .style(Style::default().fg(Color::LightYellow))
-                .highlight_style(Style::default().add_modifier(Modifier::REVERSED).fg(Color::LightCyan))
+                .highlight_style(config_highlight)
                 .block(
                     Block::default()
                         .title("Config")
@@ -78,7 +87,58 @@ pub fn ui(f: &mut Frame, app: &mut App) {
             f.render_stateful_widget(popup, area, &mut app.tablestate);
         }
         PopUp::Keymap => {
-            todo!()
+            // TODO: format the keycodes in to dedicated characters without using debug display
+            let rows = vec![
+                Row::new(vec![
+                    Cell::from("Move Up:"),
+                    Cell::from(app.config.keymap.up.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+                ]),
+                Row::new(vec![
+                    Cell::from("Move Down:"),
+                    Cell::from(app.config.keymap.down.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+                ]),
+                Row::new(vec![
+                    Cell::from("Move Left:"),
+                    Cell::from(app.config.keymap.left.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+                ]),
+                Row::new(vec![
+                    Cell::from("Move Right:"),
+                    Cell::from(app.config.keymap.right.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+                ]),
+                Row::new(vec![
+                    Cell::from("Exit:"),
+                    Cell::from(app.config.keymap.exit.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+                ]),
+                Row::new(vec![
+                    Cell::from("Reset:"),
+                    Cell::from(app.config.keymap.reset.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+                ]),
+                Row::new(vec![
+                    Cell::from("Confirm:"),
+                    Cell::from(app.config.keymap.confirm.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+                ]),
+                Row::new(vec![
+                    Cell::from("Open Config:"),
+                    Cell::from(app.config.keymap.config.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+                ]),
+            ];
+            let popup = Table::new(
+                rows,
+                [
+                    Constraint::Min(10),
+                    Constraint::Min(5),
+                ],
+            )
+                .style(Style::default().fg(Color::LightYellow))
+                .highlight_style(config_highlight)
+                .block(
+                    Block::default()
+                        .title("Config > Keymap")
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Thick)
+                );
+            let area = centered_rect(rects[1], 50, 50);
+            f.render_stateful_widget(popup, area, &mut app.tablestate);
         }
         PopUp::Colors => {
             todo!()
@@ -120,7 +180,7 @@ fn render_title(f: &mut Frame, area: Rect) {
 fn render_table(f: &mut Frame, app: &mut App, area: Rect) {
     let rows = app.items.iter().map(|data| {
         let items = data.numbers();
-        let cell_y_spacing = "\n".repeat((app.config.field_size as f32 / 2.5).floor() as usize);
+        let cell_y_spacing = "\n".repeat((FIELD_SIZES[app.config.field_size] as f32 / 2.5).floor() as usize);
         Row::new(
             items.iter().map(|i| Cell::from(
                 vec![
@@ -133,10 +193,10 @@ fn render_table(f: &mut Frame, app: &mut App, area: Rect) {
             .style(Style::new()
                 .fg(app.config.colors.row_fg)
                 .bg(app.config.colors.normal_row_color))
-            .height(app.config.field_size)
+            .height(FIELD_SIZES[app.config.field_size])
     });
 
-    let width_constraint = Constraint::Length(app.config.field_size * 2);
+    let width_constraint = Constraint::Length(FIELD_SIZES[app.config.field_size] * 2);
     let t = Table::new(rows, [width_constraint, width_constraint, width_constraint, width_constraint])
         .bg(app.config.colors.buffer_bg)
         .column_spacing(0);
@@ -175,4 +235,18 @@ fn centered_rect(r: Rect, percent_x: u16, percent_y: u16) -> Rect {
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
+}
+
+fn option_arrows<T: PartialEq + Display>(value: T, options: Box<[T]>) -> String {
+    // in order to always display option arrows, options has to be empty (avoids unnecessary overhead)
+    if options.len() == 0 {
+        return format!("< {} >", value);
+    }
+
+    let index = options.iter().position(|i| i == &value).unwrap();
+    format!("{} {} {}",
+            if index != 0 { "<" } else { "" },
+            value,
+            if index != options.len()-1 { ">" } else { "" }
+    ).trim().to_string()
 }
