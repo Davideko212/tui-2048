@@ -78,7 +78,7 @@ impl App {
                 self.tablestate.select(Some((self.tablestate.selected().unwrap() as i32 - 1).rem_euclid(8) as usize));
             }
             PopUp::Colors => {
-                todo!()
+                self.tablestate.select(Some((self.tablestate.selected().unwrap() as i32 - 1).rem_euclid(5) as usize));
             }
         }
     }
@@ -119,7 +119,7 @@ impl App {
                 self.tablestate.select(Some((self.tablestate.selected().unwrap() + 1) % 8));
             }
             PopUp::Colors => {
-                todo!()
+                self.tablestate.select(Some((self.tablestate.selected().unwrap() + 1) % 5));
             }
         }
     }
@@ -168,11 +168,8 @@ impl App {
                     }
                 }
             }
-            PopUp::Keymap => {
+            PopUp::Keymap | PopUp::Colors => {
                 // nothing :)
-            }
-            PopUp::Colors => {
-                todo!()
             }
         }
     }
@@ -221,11 +218,8 @@ impl App {
                     }
                 }
             }
-            PopUp::Keymap => {
+            PopUp::Keymap | PopUp::Colors => {
                 // nothing :)
-            }
-            PopUp::Colors => {
-                todo!()
             }
         }
     }
