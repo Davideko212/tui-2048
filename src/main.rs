@@ -1,10 +1,5 @@
-mod interface;
-mod colors;
-mod movement;
-mod util;
-mod app;
-
 use std::{error::Error, io};
+
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture, KeyCode},
     execute,
@@ -12,10 +7,17 @@ use crossterm::{
 };
 use crossterm::event::KeyCode::*;
 use ratatui::prelude::*;
+
 use crate::app::{App, run_app};
 use crate::colors::TableColors;
 use crate::GameState::*;
 use crate::util::*;
+
+mod interface;
+mod colors;
+mod movement;
+mod util;
+mod app;
 
 const FIELD_SIZES: [u16; 7] = [3, 4, 5, 6, 7, 8, 9];
 const WIN_VALUES: [u32; 12] = [8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384];
@@ -63,7 +65,6 @@ enum GameState {
     Active,
     Loss,
     Win,
-    Config,
 }
 
 #[derive(Eq, PartialEq, Default)]
@@ -123,5 +124,5 @@ pub enum Direction {
     Up,
     Down,
     Left,
-    Right
+    Right,
 }

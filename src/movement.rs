@@ -1,4 +1,5 @@
 use itertools::Itertools;
+
 use crate::Data;
 
 fn merge_backward(slice: &mut [u32]) {
@@ -136,6 +137,7 @@ mod slide_test {
 #[cfg(test)]
 mod rotate_test {
     use crate::Data;
+
     use super::rotate;
 
     #[test]

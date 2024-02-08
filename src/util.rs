@@ -1,7 +1,9 @@
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::sync::atomic::{AtomicU64, Ordering};
+
 use itertools::Itertools;
 use rand::{Rng, thread_rng};
+
 use crate::{Data, Direction, movement};
 use crate::Direction::*;
 use crate::movement::rotate;
@@ -42,7 +44,7 @@ pub fn spawn_field(vec: &mut [Data]) {
 
 pub fn check_win(field: &[Data], win_value: &u32) -> bool {
     for row in field.iter() {
-        if row.numbers.contains(win_value) { return true }
+        if row.numbers.contains(win_value) { return true; }
     }
 
     false
@@ -68,11 +70,13 @@ pub fn check_move(field: &[Data], dir: Direction) -> bool {
         rotate(new_items.as_mut_slice(), dir == Down);
     } else {
         for row in field.iter() {
-            new_items.push(Data { numbers: if dir == Left {
-                movement::slide_left(row.numbers().as_slice())
-            } else {
-                movement::slide_right(row.numbers().as_slice())
-            }});
+            new_items.push(Data {
+                numbers: if dir == Left {
+                    movement::slide_left(row.numbers().as_slice())
+                } else {
+                    movement::slide_right(row.numbers().as_slice())
+                }
+            });
         }
     }
 
@@ -86,14 +90,14 @@ pub fn remove_matches(v1: &mut Vec<u32>, v2: &mut Vec<u32>) {
 
     loop {
         match (v1_iter.peek(), v2_iter.peek()) {
-            (None,    None   ) => return,
-            (Some(_), None   ) => v1.extend(&mut v1_iter),
-            (None,    Some(_)) => v2.extend(&mut v2_iter),
+            (None, None) => return,
+            (Some(_), None) => v1.extend(&mut v1_iter),
+            (None, Some(_)) => v2.extend(&mut v2_iter),
             (Some(a), Some(b)) => {
                 match a.cmp(b) {
-                    Less    => v1.push(v1_iter.next().unwrap()),
+                    Less => v1.push(v1_iter.next().unwrap()),
                     Greater => v2.push(v2_iter.next().unwrap()),
-                    Equal   => {
+                    Equal => {
                         let _ = v1_iter.next();
                         let _ = v2_iter.next();
                     }

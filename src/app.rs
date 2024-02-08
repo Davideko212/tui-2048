@@ -1,9 +1,11 @@
 use std::io;
+
 use crossterm::event;
 use crossterm::event::{Event, KeyEventKind};
 use ratatui::backend::Backend;
 use ratatui::Terminal;
 use ratatui::widgets::TableState;
+
 use crate::{Config, Data, FIELD_SIZES, GameState, KeyMap, movement, PopUp, SelectedOption, WIN_VALUES};
 use crate::colors::TableColors;
 use crate::Direction::*;
@@ -162,7 +164,7 @@ impl App {
                             if self.config.win_value > 0 {
                                 self.config.win_value -= 1
                             }
-                        },
+                        }
                         4 => self.config.reset_popup = !self.config.reset_popup,
                         _ => unimplemented!()
                     }
@@ -212,7 +214,7 @@ impl App {
                             if self.config.win_value < WIN_VALUES.len() {
                                 self.config.win_value += 1
                             }
-                        },
+                        }
                         4 => self.config.reset_popup = !self.config.reset_popup,
                         _ => unimplemented!()
                     }
@@ -222,10 +224,6 @@ impl App {
                 // nothing :)
             }
         }
-    }
-
-    pub fn set_colors(&mut self) {
-        self.config.colors = TableColors::default();
     }
 
     pub fn reset(&mut self) {
