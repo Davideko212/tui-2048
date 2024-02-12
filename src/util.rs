@@ -135,3 +135,139 @@ pub fn incr_highscore(num: u64) {
 pub fn get_highscore() -> u64 {
     HIGHSCORE.load(Ordering::SeqCst)
 }
+
+#[cfg(test)]
+mod check_test {
+    use std::ops::Deref;
+    use crate::Data;
+    use lazy_static::lazy_static;
+    use super::check_loss;
+    use super::check_win;
+    use super::check_move;
+
+    lazy_static! {
+        // 4x4 fields
+        static ref EMPTY_4X4_FIELD: [Data; 4] = [
+            Data { numbers: vec![0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0] },
+        ];
+
+        static ref STARTING_4X4_FIELD: [Data; 4] = [
+            Data { numbers: vec![0, 0, 0, 0] },
+            Data { numbers: vec![0, 2, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 2] },
+            Data { numbers: vec![0, 0, 0, 0] },
+        ];
+
+        static ref MIXED_4X4_FIELD: [Data; 4] = [
+            Data { numbers: vec![16, 128, 32, 4] },
+            Data { numbers: vec![4, 2, 8, 2] },
+            Data { numbers: vec![0, 0, 0, 2] },
+            Data { numbers: vec![2, 0, 0, 0] },
+        ];
+
+        static ref FILLED_4X4_FIELD: [Data; 4] = [
+            Data { numbers: vec![32, 256, 512, 128] },
+            Data { numbers: vec![8, 128, 16, 4] },
+            Data { numbers: vec![16, 8, 16, 2] },
+            Data { numbers: vec![4, 4, 8, 2] },
+        ];
+
+        static ref BLOCKED_4X4_FIELD: [Data; 4] = [
+            Data { numbers: vec![32, 256, 512, 128] },
+            Data { numbers: vec![8, 128, 32, 4] },
+            Data { numbers: vec![16, 8, 16, 8] },
+            Data { numbers: vec![4, 2, 8, 2] },
+        ];
+
+        // 3x3 fields
+        static ref EMPTY_3X3_FIELD: [Data; 3] = [
+            Data { numbers: vec![0, 0, 0] },
+            Data { numbers: vec![0, 0, 0] },
+            Data { numbers: vec![0, 0, 0] },
+        ];
+
+        static ref STARTING_3X3_FIELD: [Data; 3] = [
+            Data { numbers: vec![0, 0, 2] },
+            Data { numbers: vec![0, 2, 0] },
+            Data { numbers: vec![0, 0, 0] },
+        ];
+
+        static ref MIXED_3X3_FIELD: [Data; 3] = [
+            Data { numbers: vec![16, 128, 32] },
+            Data { numbers: vec![8, 8, 2] },
+            Data { numbers: vec![0, 2, 0] },
+        ];
+
+        static ref FILLED_3X3_FIELD: [Data; 3] = [
+            Data { numbers: vec![32, 64, 128] },
+            Data { numbers: vec![4, 128, 16] },
+            Data { numbers: vec![8, 8, 16] },
+        ];
+
+        static ref BLOCKED_3X3_FIELD: [Data; 3] = [
+            Data { numbers: vec![32, 64, 128] },
+            Data { numbers: vec![8, 32, 64] },
+            Data { numbers: vec![16, 2, 4] },
+        ];
+
+        // 5x5 fields
+        static ref EMPTY_5X5_FIELD: [Data; 5] = [
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+        ];
+
+        static ref STARTING_5X5_FIELD: [Data; 5] = [
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 2, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 2, 0] },
+        ];
+
+        static ref MIXED_5X5_FIELD: [Data; 5] = [
+            Data { numbers: vec![128, 512, 64, 128, 32] },
+            Data { numbers: vec![64, 16, 2, 4, 16] },
+            Data { numbers: vec![2, 2, 8, 16, 16] },
+            Data { numbers: vec![8, 2, 0, 2, 32] },
+            Data { numbers: vec![4, 0, 0, 0, 4] },
+        ];
+
+        static ref FILLED_5X5_FIELD: [Data; 5] = [
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+        ];
+
+        static ref BLOCKED_5X5_FIELD: [Data; 5] = [
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+            Data { numbers: vec![0, 0, 0, 0, 0] },
+        ];
+
+        // win values
+        static ref DEFAULT_WIN_VALUE: u32 = 2048;
+        static ref CUSTOM_WIN_VALUE_1: u32 = 256;
+        static ref CUSTOM_WIN_VALUE_2: u32 = 4096;
+    }
+
+
+    #[test]
+    fn test_check_win_default_value_4x4_empty() {
+        assert_eq!(check_win(EMPTY_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
+    }
+
+    #[test]
+    fn test_check_win_default_value() {
+
+    }
+}
