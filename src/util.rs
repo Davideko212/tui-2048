@@ -284,217 +284,217 @@ mod check_test {
 
     #[test]
     fn test_check_win_4x4_empty() {
-        assert_eq!(check_win(EMPTY_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(EMPTY_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(EMPTY_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(EMPTY_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(EMPTY_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(EMPTY_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_4x4_starting() {
-        assert_eq!(check_win(STARTING_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(STARTING_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(STARTING_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(STARTING_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(STARTING_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(STARTING_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_4x4_mixed() {
-        assert_eq!(check_win(MIXED_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(MIXED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(MIXED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(MIXED_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(MIXED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(MIXED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_4x4_filled() {
-        assert_eq!(check_win(FILLED_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(FILLED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1), true);
-        assert_eq!(check_win(FILLED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(FILLED_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(check_win(FILLED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(FILLED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_4x4_blocked() {
-        assert_eq!(check_win(BLOCKED_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(BLOCKED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1), true);
-        assert_eq!(check_win(BLOCKED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(BLOCKED_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(check_win(BLOCKED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(BLOCKED_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_4x4_win() {
-        assert_eq!(check_win(WIN_2048_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE), true);
-        assert_eq!(check_win(WIN_2048_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false); // win value has to match exactly!
-        assert_eq!(check_win(WIN_2048_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(check_win(WIN_2048_4X4_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(WIN_2048_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_1)); // win value has to match exactly!
+        assert!(!check_win(WIN_2048_4X4_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_3x3_empty() {
-        assert_eq!(check_win(EMPTY_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(EMPTY_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(EMPTY_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(EMPTY_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(EMPTY_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(EMPTY_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_3x3_starting() {
-        assert_eq!(check_win(STARTING_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(STARTING_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(STARTING_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(STARTING_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(STARTING_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(STARTING_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_3x3_mixed() {
-        assert_eq!(check_win(MIXED_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(MIXED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(MIXED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(MIXED_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(MIXED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(MIXED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_3x3_filled() {
-        assert_eq!(check_win(FILLED_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(FILLED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(FILLED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(FILLED_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(FILLED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(FILLED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_3x3_blocked() {
-        assert_eq!(check_win(BLOCKED_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(BLOCKED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(BLOCKED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(BLOCKED_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(BLOCKED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(BLOCKED_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_3x3_win() {
-        assert_eq!(check_win(WIN_256_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(WIN_256_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1), true);
-        assert_eq!(check_win(WIN_256_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(WIN_256_3X3_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(check_win(WIN_256_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(WIN_256_3X3_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_5x5_empty() {
-        assert_eq!(check_win(EMPTY_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(EMPTY_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(EMPTY_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(EMPTY_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(EMPTY_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(EMPTY_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_5x5_starting() {
-        assert_eq!(check_win(STARTING_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(STARTING_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(STARTING_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(STARTING_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(STARTING_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(STARTING_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_5x5_mixed() {
-        assert_eq!(check_win(MIXED_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(MIXED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(MIXED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(MIXED_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(MIXED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(MIXED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_5x5_filled() {
-        assert_eq!(check_win(FILLED_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(FILLED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1), true);
-        assert_eq!(check_win(FILLED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(!check_win(FILLED_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(check_win(FILLED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(FILLED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_5x5_blocked() {
-        assert_eq!(check_win(BLOCKED_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE), true);
-        assert_eq!(check_win(BLOCKED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1), true);
-        assert_eq!(check_win(BLOCKED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2), false);
+        assert!(check_win(BLOCKED_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(check_win(BLOCKED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(!check_win(BLOCKED_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_win_5x5_win() {
-        assert_eq!(check_win(WIN_4096_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE), false);
-        assert_eq!(check_win(WIN_4096_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1), false);
-        assert_eq!(check_win(WIN_4096_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2), true);
+        assert!(!check_win(WIN_4096_5X5_FIELD.deref(), &DEFAULT_WIN_VALUE));
+        assert!(!check_win(WIN_4096_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_1));
+        assert!(check_win(WIN_4096_5X5_FIELD.deref(), &CUSTOM_WIN_VALUE_2));
     }
 
     #[test]
     fn test_check_loss_4x4_empty() {
-        assert_eq!(check_loss(EMPTY_4X4_FIELD.deref()), false);
+        assert!(!check_loss(EMPTY_4X4_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_4x4_starting() {
-        assert_eq!(check_loss(STARTING_4X4_FIELD.deref()), false);
+        assert!(!check_loss(STARTING_4X4_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_4x4_mixed() {
-        assert_eq!(check_loss(MIXED_4X4_FIELD.deref()), false);
+        assert!(!check_loss(MIXED_4X4_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_4x4_filled() {
-        assert_eq!(check_loss(FILLED_4X4_FIELD.deref()), false);
+        assert!(!check_loss(FILLED_4X4_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_4x4_blocked() {
-        assert_eq!(check_loss(BLOCKED_4X4_FIELD.deref()), true);
+        assert!(check_loss(BLOCKED_4X4_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_4x4_win() {
-        assert_eq!(check_loss(WIN_2048_4X4_FIELD.deref()), false);
+        assert!(!check_loss(WIN_2048_4X4_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_3x3_empty() {
-        assert_eq!(check_loss(EMPTY_3X3_FIELD.deref()), false);
+        assert!(!check_loss(EMPTY_3X3_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_3x3_starting() {
-        assert_eq!(check_loss(STARTING_3X3_FIELD.deref()), false);
+        assert!(!check_loss(STARTING_3X3_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_3x3_mixed() {
-        assert_eq!(check_loss(MIXED_3X3_FIELD.deref()), false);
+        assert!(!check_loss(MIXED_3X3_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_3x3_filled() {
-        assert_eq!(check_loss(FILLED_3X3_FIELD.deref()), false);
+        assert!(!check_loss(FILLED_3X3_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_3x3_blocked() {
-        assert_eq!(check_loss(BLOCKED_3X3_FIELD.deref()), true);
+        assert!(check_loss(BLOCKED_3X3_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_3x3_win() {
-        assert_eq!(check_loss(WIN_256_3X3_FIELD.deref()), false);
+        assert!(!check_loss(WIN_256_3X3_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_5x5_empty() {
-        assert_eq!(check_loss(EMPTY_5X5_FIELD.deref()), false);
+        assert!(!check_loss(EMPTY_5X5_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_5x5_starting() {
-        assert_eq!(check_loss(STARTING_5X5_FIELD.deref()), false);
+        assert!(!check_loss(STARTING_5X5_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_5x5_mixed() {
-        assert_eq!(check_loss(MIXED_5X5_FIELD.deref()), false);
+        assert!(!check_loss(MIXED_5X5_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_5x5_filled() {
-        assert_eq!(check_loss(FILLED_5X5_FIELD.deref()), false);
+        assert!(!check_loss(FILLED_5X5_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_5x5_blocked() {
-        assert_eq!(check_loss(BLOCKED_5X5_FIELD.deref()), true);
+        assert!(check_loss(BLOCKED_5X5_FIELD.deref()));
     }
 
     #[test]
     fn test_check_loss_5x5_win() {
-        assert_eq!(check_loss(WIN_4096_5X5_FIELD.deref()), false);
+        assert!(!check_loss(WIN_4096_5X5_FIELD.deref()));
     }
 }
