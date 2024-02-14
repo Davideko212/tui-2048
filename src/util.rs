@@ -51,10 +51,18 @@ pub fn check_win(field: &[Data], win_value: &u32) -> bool {
 }
 
 pub fn check_loss(field: &[Data]) -> bool {
-    !(check_move(field, Left) || check_move(field, Right) || check_move(field, Up) || check_move(field, Down))
+    !(check_move(field, Left) || check_move(field, Right) || check_move(field, Up) || check_move(field, Down) || check_empty(field))
 }
 
-// TODO: FIXXXXX, this isnt always returning the correct value (maybe write tests? :))
+fn check_empty(field: &[Data]) -> bool {
+    for row in field.iter() {
+        if !row.numbers.iter().all_equal() { return false; }
+    }
+
+    field[0].numbers[0] == 0
+}
+
+// checks if the game field changes in any way after moving in to a given direction
 pub fn check_move(field: &[Data], dir: Direction) -> bool {
     let mut new_items = Vec::<Data>::new();
 
@@ -80,7 +88,7 @@ pub fn check_move(field: &[Data], dir: Direction) -> bool {
         }
     }
 
-    *field == new_items
+    *field != new_items
 }
 
 // thank you stack overflow
@@ -144,6 +152,7 @@ mod check_test {
     use super::check_loss;
     use super::check_win;
     use super::check_move;
+    use super::Direction::*;
 
     lazy_static! {
         // 4x4 fields
@@ -172,7 +181,7 @@ mod check_test {
             Data { numbers: vec![32, 256, 512, 128] },
             Data { numbers: vec![8, 128, 16, 4] },
             Data { numbers: vec![16, 8, 16, 2] },
-            Data { numbers: vec![4, 4, 8, 2] },
+            Data { numbers: vec![4, 2, 8, 2] },
         ];
 
         static ref BLOCKED_4X4_FIELD: [Data; 4] = [
@@ -211,7 +220,7 @@ mod check_test {
         static ref FILLED_3X3_FIELD: [Data; 3] = [
             Data { numbers: vec![32, 64, 128] },
             Data { numbers: vec![4, 128, 16] },
-            Data { numbers: vec![8, 8, 16] },
+            Data { numbers: vec![8, 8, 4] },
         ];
 
         static ref BLOCKED_3X3_FIELD: [Data; 3] = [
@@ -253,10 +262,10 @@ mod check_test {
 
         static ref FILLED_5X5_FIELD: [Data; 5] = [
             Data { numbers: vec![1028, 256, 512, 64, 32] },
-            Data { numbers: vec![128, 128, 32, 16, 64] },
+            Data { numbers: vec![64, 128, 32, 16, 64] },
             Data { numbers: vec![32, 64, 8, 16, 8] },
             Data { numbers: vec![16, 8, 2, 4, 8] },
-            Data { numbers: vec![2, 4, 2, 2, 8] },
+            Data { numbers: vec![2, 4, 8, 2, 8] },
         ];
 
         static ref BLOCKED_5X5_FIELD: [Data; 5] = [
@@ -496,5 +505,149 @@ mod check_test {
     #[test]
     fn test_check_loss_5x5_win() {
         assert!(!check_loss(WIN_4096_5X5_FIELD.deref()));
+    }
+
+    #[test]
+    fn test_check_move_4x4_empty() {
+        assert!(!check_move(EMPTY_4X4_FIELD.deref(), Left));
+        assert!(!check_move(EMPTY_4X4_FIELD.deref(), Right));
+        assert!(!check_move(EMPTY_4X4_FIELD.deref(), Up));
+        assert!(!check_move(EMPTY_4X4_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_4x4_starting() {
+        assert!(check_move(STARTING_4X4_FIELD.deref(), Left));
+        assert!(check_move(STARTING_4X4_FIELD.deref(), Right));
+        assert!(check_move(STARTING_4X4_FIELD.deref(), Up));
+        assert!(check_move(STARTING_4X4_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_4x4_mixed() {
+        assert!(check_move(MIXED_4X4_FIELD.deref(), Left));
+        assert!(check_move(MIXED_4X4_FIELD.deref(), Right));
+        assert!(check_move(MIXED_4X4_FIELD.deref(), Up));
+        assert!(check_move(MIXED_4X4_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_4x4_filled() {
+        assert!(!check_move(FILLED_4X4_FIELD.deref(), Left));
+        assert!(!check_move(FILLED_4X4_FIELD.deref(), Right));
+        assert!(check_move(FILLED_4X4_FIELD.deref(), Up));
+        assert!(check_move(FILLED_4X4_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_4x4_blocked() {
+        assert!(!check_move(BLOCKED_4X4_FIELD.deref(), Left));
+        assert!(!check_move(BLOCKED_4X4_FIELD.deref(), Right));
+        assert!(!check_move(BLOCKED_4X4_FIELD.deref(), Up));
+        assert!(!check_move(BLOCKED_4X4_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_4x4_win() {
+        assert!(check_move(WIN_2048_4X4_FIELD.deref(), Left));
+        assert!(check_move(WIN_2048_4X4_FIELD.deref(), Right));
+        assert!(check_move(WIN_2048_4X4_FIELD.deref(), Up));
+        assert!(check_move(WIN_2048_4X4_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_3x3_empty() {
+        assert!(!check_move(EMPTY_3X3_FIELD.deref(), Left));
+        assert!(!check_move(EMPTY_3X3_FIELD.deref(), Right));
+        assert!(!check_move(EMPTY_3X3_FIELD.deref(), Up));
+        assert!(!check_move(EMPTY_3X3_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_3x3_starting() {
+        assert!(check_move(STARTING_3X3_FIELD.deref(), Left));
+        assert!(check_move(STARTING_3X3_FIELD.deref(), Right));
+        assert!(check_move(STARTING_3X3_FIELD.deref(), Up));
+        assert!(check_move(STARTING_3X3_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_3x3_mixed() {
+        assert!(check_move(MIXED_3X3_FIELD.deref(), Left));
+        assert!(check_move(MIXED_3X3_FIELD.deref(), Right));
+        assert!(!check_move(MIXED_3X3_FIELD.deref(), Up));
+        assert!(check_move(MIXED_3X3_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_3x3_filled() {
+        assert!(check_move(FILLED_3X3_FIELD.deref(), Left));
+        assert!(check_move(FILLED_3X3_FIELD.deref(), Right));
+        assert!(!check_move(FILLED_3X3_FIELD.deref(), Up));
+        assert!(!check_move(FILLED_3X3_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_3x3_blocked() {
+        assert!(!check_move(BLOCKED_3X3_FIELD.deref(), Left));
+        assert!(!check_move(BLOCKED_3X3_FIELD.deref(), Right));
+        assert!(!check_move(BLOCKED_3X3_FIELD.deref(), Up));
+        assert!(!check_move(BLOCKED_3X3_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_3x3_win() {
+        assert!(check_move(WIN_256_3X3_FIELD.deref(), Left));
+        assert!(check_move(WIN_256_3X3_FIELD.deref(), Right));
+        assert!(check_move(WIN_256_3X3_FIELD.deref(), Up));
+        assert!(check_move(WIN_256_3X3_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_5x5_empty() {
+        assert!(!check_move(EMPTY_5X5_FIELD.deref(), Left));
+        assert!(!check_move(EMPTY_5X5_FIELD.deref(), Right));
+        assert!(!check_move(EMPTY_5X5_FIELD.deref(), Up));
+        assert!(!check_move(EMPTY_5X5_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_5x5_starting() {
+        assert!(check_move(STARTING_5X5_FIELD.deref(), Left));
+        assert!(check_move(STARTING_5X5_FIELD.deref(), Right));
+        assert!(check_move(STARTING_5X5_FIELD.deref(), Up));
+        assert!(check_move(STARTING_5X5_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_5x5_mixed() {
+        assert!(check_move(MIXED_5X5_FIELD.deref(), Left));
+        assert!(check_move(MIXED_5X5_FIELD.deref(), Right));
+        assert!(check_move(MIXED_5X5_FIELD.deref(), Up));
+        assert!(check_move(MIXED_5X5_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_5x5_filled() {
+        assert!(!check_move(FILLED_5X5_FIELD.deref(), Left));
+        assert!(!check_move(FILLED_5X5_FIELD.deref(), Right));
+        assert!(check_move(FILLED_5X5_FIELD.deref(), Up));
+        assert!(check_move(FILLED_5X5_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_5x5_blocked() {
+        assert!(!check_move(BLOCKED_5X5_FIELD.deref(), Left));
+        assert!(!check_move(BLOCKED_5X5_FIELD.deref(), Right));
+        assert!(!check_move(BLOCKED_5X5_FIELD.deref(), Up));
+        assert!(!check_move(BLOCKED_5X5_FIELD.deref(), Down));
+    }
+
+    #[test]
+    fn test_check_move_5x5_win() {
+        assert!(check_move(WIN_4096_5X5_FIELD.deref(), Left));
+        assert!(check_move(WIN_4096_5X5_FIELD.deref(), Right));
+        assert!(check_move(WIN_4096_5X5_FIELD.deref(), Up));
+        assert!(check_move(WIN_4096_5X5_FIELD.deref(), Down));
     }
 }
