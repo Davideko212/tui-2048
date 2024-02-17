@@ -65,25 +65,26 @@ fn render_title(f: &mut Frame, area: Rect) {
 }
 
 fn render_game(f: &mut Frame, app: &mut App, area: Rect) {
+    let square_size = area.height / FIELD_SIZES[app.config.field_size];
+
     let rows = app.items.iter().map(|data| {
         let items = data.numbers();
-        let cell_y_spacing = "\n".repeat((FIELD_SIZES[app.config.field_size] as f32 / 2.5).floor() as usize);
         Row::new(
             items.iter().map(|i| Cell::from(
-                vec![
-                    Line::from(""), // TODO: adaptive
-                    Line::from(format!("{i}")).alignment(Alignment::Center),
-                ]
-                //Text::from(format!("{}{}", cell_y_spacing, i))
+                [
+                    vec![Line::from(""); (square_size/2) as usize],
+                    vec![Line::from(format!("{i}")).alignment(Alignment::Center)],
+                    vec![Line::from(""); (square_size/2 - 1) as usize],
+                ].concat()
             ).bg(value_bg_color(*i))).collect_vec()
         )
             .style(Style::new()
                 .fg(app.config.colors.row_fg)
                 .bg(app.config.colors.normal_row_color))
-            .height(FIELD_SIZES[app.config.field_size])
+            .height(square_size)
     });
 
-    let width_constraint = Constraint::Length(FIELD_SIZES[app.config.field_size] * 2);
+    let width_constraint = Constraint::Length(square_size * 2);
     let t = Table::new(rows, [width_constraint, width_constraint, width_constraint, width_constraint])
         .bg(app.config.colors.buffer_bg)
         .column_spacing(0);
@@ -149,7 +150,7 @@ fn render_config(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlig
                 .borders(Borders::ALL)
                 .border_type(BorderType::Thick)
         );
-    let area = centered_rect(rects[1], 50, 35);
+    let area = centered_rect(rects[1], 50, 7);
     f.render_stateful_widget(popup, area, &mut app.tablestate);
 }
 
@@ -204,7 +205,7 @@ fn render_keymap(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlig
                 .borders(Borders::ALL)
                 .border_type(BorderType::Double)
         );
-    let area = centered_rect(rects[1], 50, 50);
+    let area = centered_rect(rects[1], 50, 10);
     f.render_stateful_widget(popup, area, &mut app.tablestate);
 }
 
@@ -246,7 +247,7 @@ fn render_colors(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlig
                 .borders(Borders::ALL)
                 .border_type(BorderType::Double)
         );
-    let area = centered_rect(rects[1], 50, 40);
+    let area = centered_rect(rects[1], 50, 7);
     f.render_stateful_widget(popup, area, &mut app.tablestate);
 }
 
@@ -264,13 +265,13 @@ fn render_sidebar(f: &mut Frame, app: &mut App, area: Rect) {
 }
 
 // TODO: make this work with the table
-fn centered_rect(r: Rect, percent_x: u16, percent_y: u16) -> Rect {
+fn centered_rect(r: Rect, percent_x: u16, height: u16) -> Rect {
     let popup_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Percentage(percent_y),
-            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Fill(1),
+            Constraint::Max(height),
+            Constraint::Fill(1),
         ])
         .split(r);
 
