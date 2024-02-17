@@ -54,6 +54,7 @@ impl App {
                 let mut new_items = Vec::<Data>::new();
                 let mut clone = self.items.clone();
                 rotate(clone.as_mut_slice(), true);
+                let spawn = check_move(&clone, Left);
 
                 for row in clone.iter() {
                     let mut slide = movement::slide_left(row.numbers().as_slice());
@@ -66,7 +67,7 @@ impl App {
                 rotate(new_items.as_mut_slice(), false);
                 self.items = new_items;
 
-                if check_move(&self.items, Up) { spawn_field(&mut self.items) }
+                if spawn { spawn_field(&mut self.items) }
                 if check_win(&self.items, &WIN_VALUES[self.config.win_value]) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
@@ -95,6 +96,7 @@ impl App {
                 let mut new_items = Vec::<Data>::new();
                 let mut clone = self.items.clone();
                 rotate(clone.as_mut_slice(), false);
+                let spawn = check_move(&clone, Left);
 
                 for row in clone.iter() {
                     let mut slide = movement::slide_left(row.numbers().as_slice());
@@ -107,7 +109,7 @@ impl App {
                 rotate(new_items.as_mut_slice(), true);
                 self.items = new_items;
 
-                if check_move(&self.items, Down) { spawn_field(&mut self.items) }
+                if spawn { spawn_field(&mut self.items) }
                 if check_win(&self.items, &WIN_VALUES[self.config.win_value]) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
@@ -130,6 +132,7 @@ impl App {
         match self.active_popup {
             PopUp::None => {
                 let mut new_items = Vec::<Data>::new();
+                let spawn = check_move(&self.items, Left);
 
                 for row in self.items.iter() {
                     let mut slide = movement::slide_left(row.numbers().as_slice());
@@ -141,7 +144,7 @@ impl App {
 
                 self.items = new_items;
 
-                if check_move(&self.items, Left) { spawn_field(&mut self.items) }
+                if spawn { spawn_field(&mut self.items) }
                 if check_win(&self.items, &WIN_VALUES[self.config.win_value]) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
@@ -180,6 +183,7 @@ impl App {
         match self.active_popup {
             PopUp::None => {
                 let mut new_items = Vec::<Data>::new();
+                let spawn = check_move(&self.items, Right);
 
                 for row in self.items.iter() {
                     let mut slide = movement::slide_right(row.numbers().as_slice());
@@ -191,7 +195,7 @@ impl App {
 
                 self.items = new_items;
 
-                if check_move(&self.items, Right) { spawn_field(&mut self.items) }
+                if spawn { spawn_field(&mut self.items) }
                 if check_win(&self.items, &WIN_VALUES[self.config.win_value]) { self.gamestate = Win }
                 if check_loss(&self.items) { self.gamestate = Loss }
             }
