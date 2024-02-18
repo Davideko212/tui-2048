@@ -289,6 +289,26 @@ impl App {
             }
         }
     }
+
+    pub fn back(&mut self) {
+        if self.option_lock {
+            self.option_lock = false;
+            return;
+        }
+
+        match self.active_popup {
+            PopUp::None => {
+                // nothing :)
+            }
+            PopUp::Reset => {
+                self.selected_option = SelectedOption::default();
+                self.active_popup = PopUp::None;
+            }
+            PopUp::Config => self.active_popup = PopUp::None,
+            PopUp::Keymap => self.active_popup = PopUp::Config,
+            PopUp::Colors => self.active_popup = PopUp::Config,
+        }
+    }
 }
 
 pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Result<()> {
@@ -303,6 +323,7 @@ pub fn run_app<B: Backend>(terminal: &mut Terminal<B>, mut app: App) -> io::Resu
                     code if keymap.exit.contains(&code) => return Ok(()),
                     code if keymap.reset.contains(&code) => app.reset(),
                     code if keymap.confirm.contains(&code) => app.confirm(),
+                    code if keymap.back.contains(&code) => app.back(),
                     code if keymap.config.contains(&code) => app.config(),
                     code if keymap.up.contains(&code) => app.up(),
                     code if keymap.down.contains(&code) => app.down(),

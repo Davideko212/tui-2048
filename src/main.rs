@@ -101,6 +101,7 @@ pub struct KeyMap {
     exit: Vec<KeyCode>,
     reset: Vec<KeyCode>,
     confirm: Vec<KeyCode>,
+    back: Vec<KeyCode>,
     config: Vec<KeyCode>,
 }
 
@@ -112,8 +113,9 @@ impl KeyMap {
             left: vec![Char('a'), Left],
             right: vec![Char('d'), Right],
             exit: vec![Char('q'), Esc],
-            reset: vec![Char('r'), Backspace],
+            reset: vec![Char('r')],
             confirm: vec![Enter],
+            back: vec![Backspace],
             config: vec![Char('c')],
         }
     }

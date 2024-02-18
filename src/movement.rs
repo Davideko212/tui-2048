@@ -136,18 +136,31 @@ mod slide_test {
 
 #[cfg(test)]
 mod rotate_test {
+    use lazy_static::lazy_static;
     use crate::Data;
 
     use super::rotate;
 
-    #[test]
-    fn test_4x4_clockwise_rotation() {
-        let mut base = vec![
+    lazy_static! {
+        static ref BASE_4X4: [Data; 4] = [
             Data { numbers: vec![1, 0, 1, 0] },
             Data { numbers: vec![0, 0, 1, 0] },
             Data { numbers: vec![0, 0, 1, 1] },
             Data { numbers: vec![1, 0, 1, 0] },
         ];
+
+        static ref BASE_5X5: [Data; 5] = [
+            Data { numbers: vec![1, 0, 1, 0, 0] },
+            Data { numbers: vec![0, 0, 1, 0, 0] },
+            Data { numbers: vec![0, 0, 1, 1, 1] },
+            Data { numbers: vec![1, 0, 1, 0, 1] },
+            Data { numbers: vec![0, 1, 1, 0, 0] },
+        ];
+    }
+
+    #[test]
+    fn test_4x4_clockwise_rotation() {
+        let mut base = BASE_4X4.clone();
 
         let rotated = vec![
             Data { numbers: vec![1, 0, 0, 1] },
@@ -162,12 +175,7 @@ mod rotate_test {
 
     #[test]
     fn test_4x4_counter_clockwise_rotation() {
-        let mut base = vec![
-            Data { numbers: vec![1, 0, 1, 0] },
-            Data { numbers: vec![0, 0, 1, 0] },
-            Data { numbers: vec![0, 0, 1, 1] },
-            Data { numbers: vec![1, 0, 1, 0] },
-        ];
+        let mut base = BASE_4X4.clone();
 
         let rotated = vec![
             Data { numbers: vec![0, 0, 1, 0] },
@@ -182,13 +190,7 @@ mod rotate_test {
 
     #[test]
     fn test_5x5_clockwise_rotation() {
-        let mut base = vec![
-            Data { numbers: vec![1, 0, 1, 0, 0] },
-            Data { numbers: vec![0, 0, 1, 0, 0] },
-            Data { numbers: vec![0, 0, 1, 1, 1] },
-            Data { numbers: vec![1, 0, 1, 0, 1] },
-            Data { numbers: vec![0, 1, 1, 0, 0] },
-        ];
+        let mut base = BASE_5X5.clone();
 
         let rotated = vec![
             Data { numbers: vec![0, 1, 0, 0, 1] },
@@ -204,13 +206,7 @@ mod rotate_test {
 
     #[test]
     fn test_5x5_counter_clockwise_rotation() {
-        let mut base = vec![
-            Data { numbers: vec![1, 0, 1, 0, 0] },
-            Data { numbers: vec![0, 0, 1, 0, 0] },
-            Data { numbers: vec![0, 0, 1, 1, 1] },
-            Data { numbers: vec![1, 0, 1, 0, 1] },
-            Data { numbers: vec![0, 1, 1, 0, 0] },
-        ];
+        let mut base = BASE_5X5.clone();
 
         let rotated = vec![
             Data { numbers: vec![0, 0, 1, 1, 0] },
