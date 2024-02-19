@@ -1,7 +1,12 @@
+use std::collections::HashMap;
+use config::Value;
 use ratatui::prelude::{Color, Line, Stylize};
 use ratatui::prelude::Color::{Black, Blue, Gray, Green};
 use ratatui::style::Color::White;
+use serde::{Deserialize, Serialize};
+use crate::util::deserialize_color;
 
+#[derive(Deserialize, Serialize)]
 pub struct TableColors {
     pub buffer_bg: Color,
     pub header_bg: Color,
@@ -22,6 +27,18 @@ impl TableColors {
             selected_style_fg: Gray,
             normal_row_color: Black,
             footer_border_color: Green,
+        }
+    }
+
+    pub fn from_map(map: HashMap<String, Value>) -> Self {
+        Self {
+            buffer_bg: deserialize_color(&map, "buffer_bg"),
+            header_bg: deserialize_color(&map, "header_bg"),
+            header_fg: deserialize_color(&map, "header_fg"),
+            row_fg: deserialize_color(&map, "row_fg"),
+            selected_style_fg: deserialize_color(&map, "selected_style_fg"),
+            normal_row_color: deserialize_color(&map, "normal_row_color"),
+            footer_border_color: deserialize_color(&map, "footer_border_color"),
         }
     }
 }

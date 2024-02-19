@@ -1,8 +1,12 @@
 use std::cmp::Ordering::{Equal, Greater, Less};
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
+use config::Value;
+use crossterm::event::KeyCode;
 
 use itertools::Itertools;
 use rand::{Rng, thread_rng};
+use ratatui::prelude::Color;
 
 use crate::{Data, Direction, movement};
 use crate::Direction::*;
@@ -113,6 +117,16 @@ pub fn remove_matches(v1: &mut Vec<u32>, v2: &mut Vec<u32>) {
             }
         }
     }
+}
+
+#[inline]
+pub fn deserialize_keycode_vec(map: &HashMap<String, Value>, key: &str) -> Vec<KeyCode> {
+    map.get(key).unwrap().clone().into_array().unwrap().iter_mut().map(|x| x.clone().try_deserialize::<KeyCode>().unwrap()).collect_vec()
+}
+
+#[inline]
+pub fn deserialize_color(map: &HashMap<String, Value>, key: &str) -> Color {
+    map.get(key).unwrap().clone().try_deserialize::<Color>().unwrap()
 }
 
 pub fn set_score(num: u64) {

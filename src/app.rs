@@ -25,19 +25,13 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> App {
+    pub fn new(config: Config) -> App {
         let data_vec = generate_data();
         App {
             tablestate: TableState::default(),
             gamestate: Active,
             items: data_vec,
-            config: Config {
-                colors: TableColors::default(),
-                keymap: KeyMap::default(),
-                field_size: 1,
-                win_value: 8,
-                reset_popup: true,
-            },
+            config,
             active_popup: PopUp::None,
             selected_option: SelectedOption::default(),
             option_lock: false,

@@ -1,4 +1,8 @@
-use std::{error::Error, io};
+use std::{error::Error, fs, io};
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Write;
+use config::Value;
 
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture, KeyCode},
@@ -6,7 +10,9 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use crossterm::event::KeyCode::*;
+use itertools::Itertools;
 use ratatui::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use crate::app::{App, run_app};
 use crate::colors::TableColors;
@@ -30,8 +36,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
+    // create/load config file
+    if fs::metadata("config.json").is_err() {
+        let mut file = File::create("config.json")?;
+        file.write_all(&serde_json::to_vec(&Config::default()).unwrap()).expect("Could not write default config file!");
+    }
+    let config = config::Config::builder()
+        .add_source(config::File::with_name("config.json"))
+        .build()
+        .unwrap();
+
+
     // create app and run it
-    let app = App::new();
+    let app = App::new(Config::read_file(config));
     let res = run_app(&mut terminal, app);
 
     // restore terminal
@@ -84,6 +101,7 @@ enum SelectedOption {
     No,
 }
 
+#[derive(Serialize, Deserialize)]
 struct Config {
     keymap: KeyMap,
     colors: TableColors,
@@ -92,7 +110,29 @@ struct Config {
     reset_popup: bool,
 }
 
-#[derive(Clone)]
+impl Config {
+    fn default() -> Self {
+        Self {
+            colors: TableColors::default(),
+            keymap: KeyMap::default(),
+            field_size: 1,
+            win_value: 8,
+            reset_popup: true,
+        }
+    }
+
+    fn read_file(config_file: config::Config) -> Self {
+        Self {
+            colors: TableColors::from_map(config_file.get_table("colors").unwrap()),
+            keymap: KeyMap::from_map(config_file.get_table("keymap").unwrap()),
+            field_size: config_file.get_int("field_size").unwrap() as usize,
+            win_value: config_file.get_int("win_value").unwrap() as usize,
+            reset_popup: config_file.get_bool("reset_popup").unwrap(),
+        }
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct KeyMap {
     up: Vec<KeyCode>,
     down: Vec<KeyCode>,
@@ -117,6 +157,20 @@ impl KeyMap {
             confirm: vec![Enter],
             back: vec![Backspace],
             config: vec![Char('c')],
+        }
+    }
+
+    fn from_map(map: HashMap<String, Value>) -> KeyMap {
+        KeyMap {
+            up: deserialize_keycode_vec(&map, "up"),
+            down: deserialize_keycode_vec(&map, "down"),
+            left: deserialize_keycode_vec(&map, "left"),
+            right: deserialize_keycode_vec(&map, "right"),
+            exit: deserialize_keycode_vec(&map, "exit"),
+            reset: deserialize_keycode_vec(&map, "reset"),
+            confirm: deserialize_keycode_vec(&map, "confirm"),
+            back: deserialize_keycode_vec(&map, "back"),
+            config: deserialize_keycode_vec(&map, "config"),
         }
     }
 }
