@@ -78,6 +78,7 @@ impl Data {
     }
 }
 
+#[derive(PartialEq, Clone)]
 enum GameState {
     Active,
     Loss,
@@ -108,6 +109,7 @@ struct Config {
     field_size: usize,
     win_value: usize,
     reset_popup: bool,
+    ending_animation: bool, // TODO: implement this :)
 }
 
 impl Config {
@@ -118,6 +120,7 @@ impl Config {
             field_size: 1,
             win_value: 8,
             reset_popup: true,
+            ending_animation: true,
         }
     }
 
@@ -128,6 +131,7 @@ impl Config {
             field_size: config_file.get_int("field_size").unwrap() as usize,
             win_value: config_file.get_int("win_value").unwrap() as usize,
             reset_popup: config_file.get_bool("reset_popup").unwrap(),
+            ending_animation: config_file.get_bool("ending_animation").unwrap(),
         }
     }
 }

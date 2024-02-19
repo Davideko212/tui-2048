@@ -9,7 +9,7 @@ use ratatui::style::{Color, Modifier, Stylize};
 use ratatui::text::Span;
 use ratatui::widgets::{Block, Borders, BorderType, Cell, Paragraph, Row, Table};
 
-use crate::{App, FIELD_SIZES, get_highscore, get_score, PopUp, SelectedOption, WIN_VALUES};
+use crate::{App, FIELD_SIZES, GameState, get_highscore, get_score, PopUp, SelectedOption, WIN_VALUES};
 use crate::colors::{generate_color_bar, TableColors, value_bg_color};
 use crate::util::INFO_TEXT;
 
@@ -26,7 +26,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
     }
 
     match app.active_popup {
-        PopUp::Reset => render_reset(f, app, rects.clone()),
+        PopUp::Reset => render_reset(f, app, rects.clone(), app.gamestate.clone()),
         PopUp::Config => render_config(f, app, rects.clone(), config_highlight),
         PopUp::Keymap => render_keymap(f, app, rects.clone(), config_highlight),
         PopUp::Colors => render_colors(f, app, rects.clone(), config_highlight),
@@ -72,9 +72,9 @@ fn render_game(f: &mut Frame, app: &mut App, area: Rect) {
         Row::new(
             items.iter().map(|i| Cell::from(
                 [
-                    vec![Line::from(""); (square_size/2) as usize],
+                    vec![Line::from(""); (square_size / 2) as usize],
                     vec![Line::from(format!("{i}")).alignment(Alignment::Center)],
-                    vec![Line::from(""); (square_size/2 - 1) as usize],
+                    vec![Line::from(""); (square_size / 2 - 1) as usize],
                 ].concat()
             ).bg(value_bg_color(*i))).collect_vec()
         )
@@ -91,23 +91,49 @@ fn render_game(f: &mut Frame, app: &mut App, area: Rect) {
     f.render_stateful_widget(t, area, &mut app.tablestate);
 }
 
-fn render_reset(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>) {
+// this function contains the win, loss and regular reset popup
+fn render_reset(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, game_state: GameState) {
     let popup = Paragraph::new(vec![
-        Line::from("Are sure you want to reset your current game progress?"),
+        Line::from(match game_state {
+            GameState::Active => "Are sure you want to reset your current game progress?",
+            GameState::Loss => "You lost!",
+            GameState::Win => "You won!",
+        }),
+        Line::from(match game_state {
+            GameState::Active => "",
+            GameState::Loss | GameState::Win => "Do you want to reset and play again or quit?",
+        }),
         Line::default(),
         // TODO: purge duct tape solution found below
-        Span::from("Yes").style(Style::default().add_modifier(if app.selected_option == SelectedOption::Yes { Modifier::REVERSED } else { Modifier::empty() })).to_centered_line(),
-        Span::from("No").style(Style::default().add_modifier(if app.selected_option == SelectedOption::No { Modifier::REVERSED } else { Modifier::empty() })).to_centered_line(),
+        Span::from(
+            if game_state == GameState::Active { "Yes" } else { "Reset" }
+        ).style(Style::default().add_modifier(
+            if app.selected_option == SelectedOption::Yes { Modifier::REVERSED } else { Modifier::empty() })
+        ).to_centered_line(),
+        Span::from(
+            if game_state == GameState::Active { "No" } else { "Quit" }
+        ).style(Style::default().add_modifier(
+            if app.selected_option == SelectedOption::No { Modifier::REVERSED } else { Modifier::empty() })
+        ).to_centered_line(),
     ])
-        .style(Style::default().fg(Color::LightRed))
+        .style(Style::default().fg(
+            match game_state {
+                GameState::Active | GameState::Loss => Color::LightRed,
+                GameState::Win => Color::LightGreen
+            }))
         .alignment(Alignment::Center)
         .block(
             Block::default()
-                .title("Reset")
+                .title(
+                    match game_state {
+                        GameState::Active => "Reset",
+                        GameState::Loss => "Game Over",
+                        GameState::Win => "Win!",
+                    })
                 .borders(Borders::ALL)
                 .border_type(BorderType::Thick)
         );
-    let area = centered_rect(rects[1], 60, 30);
+    let area = centered_rect(rects[1], 60, 7);
     //f.render_widget(Clear, area); //this clears out the background
     f.render_widget(popup, area);
 }
