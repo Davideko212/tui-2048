@@ -110,6 +110,7 @@ struct Config {
     win_value: usize,
     reset_popup: bool,
     ending_animation: bool, // TODO: implement this :)
+    control_info: bool,
 }
 
 impl Config {
@@ -121,6 +122,7 @@ impl Config {
             win_value: 8,
             reset_popup: true,
             ending_animation: true,
+            control_info: true,
         }
     }
 
@@ -132,6 +134,7 @@ impl Config {
             win_value: config_file.get_int("win_value").unwrap() as usize,
             reset_popup: config_file.get_bool("reset_popup").unwrap(),
             ending_animation: config_file.get_bool("ending_animation").unwrap(),
+            control_info: config_file.get_bool("control_info").unwrap(),
         }
     }
 }

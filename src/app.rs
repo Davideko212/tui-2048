@@ -75,7 +75,7 @@ impl App {
                 // nothing :)
             }
             PopUp::Config => {
-                self.tablestate.select(Some((self.tablestate.selected().unwrap() as i32 - 1).rem_euclid(5) as usize));
+                self.tablestate.select(Some((self.tablestate.selected().unwrap() as i32 - 1).rem_euclid(7) as usize));
             }
             Keymap => {
                 self.tablestate.select(Some((self.tablestate.selected().unwrap() as i32 - 1).rem_euclid(8) as usize));
@@ -123,7 +123,7 @@ impl App {
                 // nothing :)
             }
             PopUp::Config => {
-                self.tablestate.select(Some((self.tablestate.selected().unwrap() + 1) % 5));
+                self.tablestate.select(Some((self.tablestate.selected().unwrap() + 1) % 7));
             }
             Keymap => {
                 self.tablestate.select(Some((self.tablestate.selected().unwrap() + 1) % 8));
@@ -181,6 +181,8 @@ impl App {
                             }
                         }
                         4 => self.config.reset_popup = !self.config.reset_popup,
+                        5 => self.config.ending_animation = !self.config.ending_animation,
+                        6 => self.config.control_info = !self.config.control_info,
                         _ => unimplemented!()
                     }
                 }
@@ -238,6 +240,8 @@ impl App {
                             }
                         }
                         4 => self.config.reset_popup = !self.config.reset_popup,
+                        5 => self.config.ending_animation = !self.config.ending_animation,
+                        6 => self.config.control_info = !self.config.control_info,
                         _ => unimplemented!()
                     }
                 }
@@ -297,7 +301,7 @@ impl App {
                 match self.tablestate.selected().unwrap() {
                     0 => self.active_popup = Keymap,
                     1 => self.active_popup = Colors,
-                    2..=4 => self.option_lock = true,
+                    2..=6 => self.option_lock = true,
                     _ => unimplemented!()
                 }
             }

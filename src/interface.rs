@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use std::rc::Rc;
+use crossterm::event::KeyCode;
 
 use itertools::Itertools;
 use ratatui::Frame;
@@ -14,7 +15,10 @@ use crate::colors::{generate_color_bar, TableColors, value_bg_color};
 use crate::util::INFO_TEXT;
 
 pub fn ui(f: &mut Frame, app: &mut App) {
-    let rects = Layout::new(Direction::Vertical, [Constraint::Length(5), Constraint::Min(15), Constraint::Length(5)]).split(f.size());
+    let rects = Layout::new(
+        Direction::Vertical,
+        [Constraint::Length(5), Constraint::Min(15), if app.config.control_info { Constraint::Length(5) } else { Constraint::Length(0) }]
+    ).split(f.size());
 
     app.config.colors = TableColors::default();
     render_title(f, rects[0]);
@@ -33,7 +37,9 @@ pub fn ui(f: &mut Frame, app: &mut App) {
         PopUp::None => render_game(f, app, rects[1])
     }
 
-    render_sidebar(f, app, rects[2]);
+    if app.config.control_info {
+        render_sidebar(f, app, rects[2]);
+    }
 }
 
 fn render_title(f: &mut Frame, area: Rect) {
@@ -160,6 +166,14 @@ fn render_config(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlig
             Cell::from("Show Reset Popup:"),
             Cell::from(option_arrows(app.config.reset_popup.to_string(), Box::from([]))),
         ]),
+        Row::new(vec![
+            Cell::from("Win/Loss Animation:"),
+            Cell::from(option_arrows(app.config.ending_animation.to_string(), Box::from([]))),
+        ]),
+        Row::new(vec![
+            Cell::from("Show Control Info:"),
+            Cell::from(option_arrows(app.config.control_info.to_string(), Box::from([]))),
+        ]),
     ];
     let popup = Table::new(
         rows,
@@ -176,45 +190,21 @@ fn render_config(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlig
                 .borders(Borders::ALL)
                 .border_type(BorderType::Thick)
         );
-    let area = centered_rect(rects[1], 50, 7);
+    let area = centered_rect(rects[1], 50, 9);
     f.render_stateful_widget(popup, area, &mut app.tablestate);
 }
 
 fn render_keymap(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlight: Style) {
     // TODO: format the keycodes in to dedicated characters without using debug display
     let rows = vec![
-        Row::new(vec![
-            Cell::from("Move Up:"),
-            Cell::from(app.config.keymap.up.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
-        ]),
-        Row::new(vec![
-            Cell::from("Move Down:"),
-            Cell::from(app.config.keymap.down.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
-        ]),
-        Row::new(vec![
-            Cell::from("Move Left:"),
-            Cell::from(app.config.keymap.left.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
-        ]),
-        Row::new(vec![
-            Cell::from("Move Right:"),
-            Cell::from(app.config.keymap.right.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
-        ]),
-        Row::new(vec![
-            Cell::from("Exit:"),
-            Cell::from(app.config.keymap.exit.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
-        ]),
-        Row::new(vec![
-            Cell::from("Reset:"),
-            Cell::from(app.config.keymap.reset.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
-        ]),
-        Row::new(vec![
-            Cell::from("Confirm:"),
-            Cell::from(app.config.keymap.confirm.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
-        ]),
-        Row::new(vec![
-            Cell::from("Open Config:"),
-            Cell::from(app.config.keymap.config.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
-        ]),
+        keymap_row("Move Up:", &app.config.keymap.up),
+        keymap_row("Move Down:", &app.config.keymap.down),
+        keymap_row("Move Left:", &app.config.keymap.left),
+        keymap_row("Move Right:", &app.config.keymap.right),
+        keymap_row("Exit:", &app.config.keymap.exit),
+        keymap_row("Reset:", &app.config.keymap.reset),
+        keymap_row("Confirm:", &app.config.keymap.confirm),
+        keymap_row("Open Config:", &app.config.keymap.config),
     ];
     let popup = Table::new(
         rows,
@@ -237,26 +227,11 @@ fn render_keymap(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlig
 
 fn render_colors(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlight: Style) {
     let rows = vec![
-        Row::new(vec![
-            Cell::from("Classic:"),
-            Cell::from(generate_color_bar(20, &["#141414", "#C82828", "#FFC828"])),
-        ]),
-        Row::new(vec![
-            Cell::from("Rainbow:"),
-            Cell::from(generate_color_bar(20, &["#141414", "#C82828", "#FFC828"])),
-        ]),
-        Row::new(vec![
-            Cell::from("Deuteranopia:"),
-            Cell::from(generate_color_bar(20, &["#141414", "#C82828", "#FFC828"])),
-        ]),
-        Row::new(vec![
-            Cell::from("Protanopia:"),
-            Cell::from(generate_color_bar(20, &["#141414", "#C82828", "#FFC828"])),
-        ]),
-        Row::new(vec![
-            Cell::from("Tritanopia:"),
-            Cell::from(generate_color_bar(20, &["#141414", "#C82828", "#FFC828"])),
-        ]),
+        color_row("Classic:", 20, &["#141414", "#C82828", "#FFC828"]),
+        color_row("Rainbow:", 20, &["#141414", "#C82828", "#FFC828"]),
+        color_row("Deuteranopia:", 20, &["#141414", "#C82828", "#FFC828"]),
+        color_row("Protanopia:", 20, &["#141414", "#C82828", "#FFC828"]),
+        color_row("Tritanopia:", 20, &["#141414", "#C82828", "#FFC828"]),
     ];
     let popup = Table::new(
         rows,
@@ -323,4 +298,20 @@ fn option_arrows<T: PartialEq + Display>(value: T, options: Box<[T]>) -> String 
             value,
             if index != options.len() - 1 { ">" } else { "" }
     ).trim().to_string()
+}
+
+#[inline]
+fn keymap_row<'a>(text: &'a str, keys: &Vec<KeyCode>) -> Row<'a> {
+    Row::new(vec![
+        Cell::from(text),
+        Cell::from(keys.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+    ])
+}
+
+#[inline]
+fn color_row<'a>(text: &'a str, width: u16, colors: &'a [&str]) -> Row<'a> {
+    Row::new(vec![
+        Cell::from(text),
+        Cell::from(generate_color_bar(width, colors)),
+    ])
 }
