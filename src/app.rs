@@ -230,12 +230,12 @@ impl App {
                 if self.option_lock {
                     match self.tablestate.selected().unwrap() {
                         2 => {
-                            if self.config.field_size < FIELD_SIZES.len() {
+                            if self.config.field_size < FIELD_SIZES.len()-1 {
                                 self.config.field_size += 1
                             }
                         }
                         3 => {
-                            if self.config.win_value < WIN_VALUES.len() {
+                            if self.config.win_value < WIN_VALUES.len()-1 {
                                 self.config.win_value += 1
                             }
                         }
