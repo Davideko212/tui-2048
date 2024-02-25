@@ -10,13 +10,11 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use crossterm::event::KeyCode::*;
-use itertools::Itertools;
 use ratatui::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::app::{App, run_app};
 use crate::colors::TableColors;
-use crate::GameState::*;
 use crate::util::*;
 
 mod interface;

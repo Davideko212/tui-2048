@@ -25,7 +25,7 @@ pub fn ui(f: &mut Frame, app: &mut App) {
 
     let mut config_highlight = Style::default().add_modifier(Modifier::REVERSED).fg(Color::LightCyan);
     if app.option_lock {
-        // TODO: make this work :)
+        // TODO: make this work ON WINDOWS CMD/POWERSHELL :)
         config_highlight = config_highlight.add_modifier(Modifier::SLOW_BLINK);
     }
 
@@ -94,7 +94,24 @@ fn render_game(f: &mut Frame, app: &mut App, area: Rect) {
     let t = Table::new(rows, [width_constraint, width_constraint, width_constraint, width_constraint])
         .bg(app.config.colors.buffer_bg)
         .column_spacing(0);
-    f.render_stateful_widget(t, area, &mut app.tablestate);
+
+    let vertical_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Fill(1),
+            Constraint::Min(square_size*4),
+            Constraint::Fill(1),
+        ])
+        .split(area);
+    let rect = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Fill(1),
+            Constraint::Min(square_size*8),
+            Constraint::Fill(1),
+        ])
+        .split(vertical_layout[1])[1];
+    f.render_stateful_widget(t, rect, &mut app.tablestate);
 }
 
 // this function contains the win, loss and regular reset popup
@@ -110,7 +127,6 @@ fn render_reset(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, game_state: Gam
             GameState::Loss | GameState::Win => "Do you want to reset and play again or quit?",
         }),
         Line::default(),
-        // TODO: purge duct tape solution found below
         Span::from(
             if game_state == GameState::Active { "Yes" } else { "Reset" }
         ).style(Style::default().add_modifier(
@@ -301,7 +317,7 @@ fn option_arrows<T: PartialEq + Display>(value: T, options: Box<[T]>) -> String 
 }
 
 #[inline]
-fn keymap_row<'a>(text: &'a str, keys: &Vec<KeyCode>) -> Row<'a> {
+fn keymap_row<'a>(text: &'a str, keys: &[KeyCode]) -> Row<'a> {
     Row::new(vec![
         Cell::from(text),
         Cell::from(keys.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
