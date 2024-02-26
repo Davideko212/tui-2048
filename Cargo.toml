@@ -18,3 +18,4 @@ serde = { version = "1.0.196", features = ["derive"] }
 
 # TODO: only use needed features
 config = "0.14.0"
+regex = "1.10.3"

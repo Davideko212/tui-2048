@@ -7,13 +7,14 @@ use crossterm::event::KeyCode;
 use itertools::Itertools;
 use rand::{Rng, thread_rng};
 use ratatui::prelude::Color;
+use regex::Regex;
 
 use crate::{Data, Direction, movement};
 use crate::Direction::*;
 use crate::movement::rotate;
 
 pub const INFO_TEXT: &str =
-    "(Esc) quit | (↑) move up | (↓) move Down | (→) move right | (←) move left";
+    "(Esc) quit | (↑) move up | (↓) move Down | (→) move right \n| (←) move left";
 
 static SCORE: AtomicU64 = AtomicU64::new(0);
 static HIGHSCORE: AtomicU64 = AtomicU64::new(0);
@@ -127,6 +128,22 @@ pub fn deserialize_keycode_vec(map: &HashMap<String, Value>, key: &str) -> Vec<K
 #[inline]
 pub fn deserialize_color(map: &HashMap<String, Value>, key: &str) -> Color {
     map.get(key).unwrap().clone().try_deserialize::<Color>().unwrap()
+}
+
+pub fn format_keycode(k: &KeyCode) -> String {
+    let raw = format!("{:?}", k);
+    let re = Regex::new(r"Char\('(.*)'\)").unwrap();
+
+    match k {
+        KeyCode::Up => String::from("↑"),
+        KeyCode::Down => String::from("↓"),
+        KeyCode::Left => String::from("←"),
+        KeyCode::Right => String::from("→"),
+        _ => match re.captures(&*raw) {
+            Some(c) => c.get(1).unwrap().as_str().to_string().to_uppercase(),
+            None => raw
+        }
+    }
 }
 
 pub fn set_score(num: u64) {

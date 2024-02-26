@@ -12,7 +12,7 @@ use ratatui::widgets::{Block, Borders, BorderType, Cell, Paragraph, Row, Table};
 
 use crate::{App, FIELD_SIZES, GameState, get_highscore, get_score, PopUp, SelectedOption, WIN_VALUES};
 use crate::colors::{generate_color_bar, TableColors, value_bg_color};
-use crate::util::INFO_TEXT;
+use crate::util::{format_keycode, INFO_TEXT};
 
 pub fn ui(f: &mut Frame, app: &mut App) {
     let rects = Layout::new(
@@ -211,7 +211,6 @@ fn render_config(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlig
 }
 
 fn render_keymap(f: &mut Frame, app: &mut App, rects: Rc<[Rect]>, config_highlight: Style) {
-    // TODO: format the keycodes in to dedicated characters without using debug display
     let rows = vec![
         keymap_row("Move Up:", &app.config.keymap.up),
         keymap_row("Move Down:", &app.config.keymap.down),
@@ -281,7 +280,6 @@ fn render_sidebar(f: &mut Frame, app: &mut App, area: Rect) {
     f.render_widget(info_footer, area);
 }
 
-// TODO: make this work with the table
 fn centered_rect(r: Rect, percent_x: u16, height: u16) -> Rect {
     let popup_layout = Layout::default()
         .direction(Direction::Vertical)
@@ -320,7 +318,7 @@ fn option_arrows<T: PartialEq + Display>(value: T, options: Box<[T]>) -> String 
 fn keymap_row<'a>(text: &'a str, keys: &[KeyCode]) -> Row<'a> {
     Row::new(vec![
         Cell::from(text),
-        Cell::from(keys.iter().map(|k| format!("{:?}", k)).collect_vec().join(", ")),
+        Cell::from(keys.iter().map(|k| format_keycode(k)).collect_vec().join(", ")),
     ])
 }
 
